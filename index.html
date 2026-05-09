@@ -367,7 +367,7 @@
             const [logoBase64, setLogoBase64] = useState(appConfig.logo);
             const [loginBgBase64, setLoginBgBase64] = useState(appConfig.loginBackground || '');
 
-            const [jadwalForm, setJadwalForm] = useState({ ID_Tes: '', Mapel: '', Waktu_Mulai: '', Durasi: 120, Token: '', Status: 'Aktif' });
+            const [jadwalForm, setJadwalForm] = useState({ ID_Tes: '', Mapel: '', Kelas: '', Tanggal: '', Waktu: '', Durasi: 120, Token: '', Status: 'Aktif' });
             const [kelasCetak, setKelasCetak] = useState('');
             const [isPrintingMassal, setIsPrintingMassal] = useState(false);
 
@@ -432,10 +432,26 @@
 
             const handleAddJadwal = (e) => {
                 e.preventDefault();
-                const newJadwal = { ...jadwalForm };
+                
+                // Menggabungkan Mapel dengan Kelas, dan Tanggal dengan Waktu
+                const finalMapel = `${jadwalForm.Mapel} - ${jadwalForm.Kelas}`;
+                const finalWaktu = `${jadwalForm.Tanggal} ${jadwalForm.Waktu} WIB`;
+                
+                const newJadwal = { 
+                    ID_Tes: jadwalForm.ID_Tes, 
+                    Mapel: finalMapel, 
+                    Waktu_Mulai: finalWaktu, 
+                    Durasi: jadwalForm.Durasi, 
+                    Token: jadwalForm.Token, 
+                    Status: jadwalForm.Status 
+                };
+                
                 setDbJadwal(prev => [...prev, newJadwal]);
+                // Jika Anda sudah menambahkan fungsi addJadwal di Backend GAS, Anda bisa panggil:
+                // apiCall('addJadwal', newJadwal);
+                
                 alert("Jadwal/Token baru berhasil dibuat untuk sesi ini.");
-                setJadwalForm({ ID_Tes: '', Mapel: '', Waktu_Mulai: '', Durasi: 120, Token: '', Status: 'Aktif' });
+                setJadwalForm({ ID_Tes: '', Mapel: '', Kelas: '', Tanggal: '', Waktu: '', Durasi: 120, Token: '', Status: 'Aktif' });
             };
 
             const siswaKelas = dbSiswa.filter(s => s.Kelas === kelasCetak);
@@ -479,8 +495,29 @@
                                 <h4 className="font-bold text-sm text-slate-500 mb-3 uppercase">Buat Sesi Ujian Baru</h4>
                                 <form onSubmit={handleAddJadwal} className="space-y-3">
                                     <div><label className="text-sm font-bold">ID Sesi</label><input required type="text" className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.ID_Tes} onChange={e=>setJadwalForm({...jadwalForm, ID_Tes: e.target.value})} placeholder="Misal: SESI-01" /></div>
-                                    <div><label className="text-sm font-bold">Kelas / Mata Pelajaran</label><input required type="text" className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.Mapel} onChange={e=>setJadwalForm({...jadwalForm, Mapel: e.target.value})} placeholder="Matematika Kelas 6" /></div>
-                                    <div><label className="text-sm font-bold">Waktu Mulai (Teks)</label><input required type="text" className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.Waktu_Mulai} onChange={e=>setJadwalForm({...jadwalForm, Waktu_Mulai: e.target.value})} placeholder="Senin, 08:00 WIB" /></div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="text-sm font-bold">Mata Pelajaran</label>
+                                            <input required type="text" className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.Mapel} onChange={e=>setJadwalForm({...jadwalForm, Mapel: e.target.value})} placeholder="Misal: Matematika" />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-bold">Kelas</label>
+                                            <select required className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.Kelas} onChange={e=>setJadwalForm({...jadwalForm, Kelas: e.target.value})}>
+                                                <option value="">-- Pilih Kelas --</option>
+                                                {[1,2,3,4,5,6,7,8,9].map(num => <option key={num} value={`Kelas ${num}`}>Kelas {num}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="text-sm font-bold">Tanggal Ujian</label>
+                                            <input required type="date" className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.Tanggal} onChange={e=>setJadwalForm({...jadwalForm, Tanggal: e.target.value})} />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-bold">Waktu Mulai</label>
+                                            <input required type="time" className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.Waktu} onChange={e=>setJadwalForm({...jadwalForm, Waktu: e.target.value})} />
+                                        </div>
+                                    </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div><label className="text-sm font-bold">Durasi (Menit)</label><input required type="number" className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.Durasi} onChange={e=>setJadwalForm({...jadwalForm, Durasi: e.target.value})} /></div>
                                         <div><label className="text-sm font-bold">Token Khusus</label><input required type="text" className="w-full border p-2 rounded text-sm font-mono uppercase outline-none focus:border-amber-500" value={jadwalForm.Token} onChange={e=>setJadwalForm({...jadwalForm, Token: e.target.value.toUpperCase()})} placeholder="XYZ12" /></div>
