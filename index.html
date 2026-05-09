@@ -367,7 +367,7 @@
             const [logoBase64, setLogoBase64] = useState(appConfig.logo);
             const [loginBgBase64, setLoginBgBase64] = useState(appConfig.loginBackground || '');
 
-            const [jadwalForm, setJadwalForm] = useState({ ID_Tes: '', Mapel: '', Kelas: '', Tanggal: '', Waktu: '', Durasi: 120, Token: '', Status: 'Aktif' });
+            const [jadwalForm, setJadwalForm] = useState({ ID_Tes: '', Mapel: '', Kelas: '', Tanggal: '', Waktu: '', Zona_Waktu: 'WITA', Durasi: 120, Token: '', Status: 'Aktif' });
             const [kelasCetak, setKelasCetak] = useState('');
             const [isPrintingMassal, setIsPrintingMassal] = useState(false);
 
@@ -433,9 +433,9 @@
             const handleAddJadwal = (e) => {
                 e.preventDefault();
                 
-                // Menggabungkan Mapel dengan Kelas, dan Tanggal dengan Waktu
+                // Menggabungkan Mapel dengan Kelas, dan Tanggal dengan Waktu serta Zona Waktu
                 const finalMapel = `${jadwalForm.Mapel} - ${jadwalForm.Kelas}`;
-                const finalWaktu = `${jadwalForm.Tanggal} ${jadwalForm.Waktu} WIB`;
+                const finalWaktu = `${jadwalForm.Tanggal} ${jadwalForm.Waktu} ${jadwalForm.Zona_Waktu}`;
                 
                 const newJadwal = { 
                     ID_Tes: jadwalForm.ID_Tes, 
@@ -451,7 +451,7 @@
                 // apiCall('addJadwal', newJadwal);
                 
                 alert("Jadwal/Token baru berhasil dibuat untuk sesi ini.");
-                setJadwalForm({ ID_Tes: '', Mapel: '', Kelas: '', Tanggal: '', Waktu: '', Durasi: 120, Token: '', Status: 'Aktif' });
+                setJadwalForm({ ID_Tes: '', Mapel: '', Kelas: '', Tanggal: '', Waktu: '', Zona_Waktu: 'WITA', Durasi: 120, Token: '', Status: 'Aktif' });
             };
 
             const siswaKelas = dbSiswa.filter(s => s.Kelas === kelasCetak);
@@ -508,7 +508,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-3 gap-2">
                                         <div>
                                             <label className="text-sm font-bold">Tanggal Ujian</label>
                                             <input required type="date" className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.Tanggal} onChange={e=>setJadwalForm({...jadwalForm, Tanggal: e.target.value})} />
@@ -516,6 +516,14 @@
                                         <div>
                                             <label className="text-sm font-bold">Waktu Mulai</label>
                                             <input required type="time" className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.Waktu} onChange={e=>setJadwalForm({...jadwalForm, Waktu: e.target.value})} />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-bold">Zona Waktu</label>
+                                            <select className="w-full border p-2 rounded text-sm outline-none focus:border-amber-500" value={jadwalForm.Zona_Waktu} onChange={e=>setJadwalForm({...jadwalForm, Zona_Waktu: e.target.value})}>
+                                                <option value="WIB">WIB</option>
+                                                <option value="WITA">WITA</option>
+                                                <option value="WIT">WIT</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
@@ -569,7 +577,7 @@
                             <div className="p-4 bg-slate-800 text-white flex justify-between items-center print:hidden sticky top-0 z-10 shadow-md">
                                 <div className="font-bold">Pratinjau Cetak Massal - {kelasCetak} ({siswaKelas.length} Kartu)</div>
                                 <div className="flex gap-3">
-                                    <button onClick={() => setIsPrintingMassal(false)} className="bg-slate-600 px-4 py-1.5 rounded hover:bg-slate-500 font-bold transition">Batal</button>
+                                    <button onClick={() => setIsPrintingMassal(false)} className="bg-slate-600 px-4 py-1.5 rounded hover:bg-slate-50 font-bold transition">Batal</button>
                                     <button onClick={() => window.print()} className="bg-red-600 px-4 py-1.5 rounded hover:bg-red-500 font-bold transition"><i className="fas fa-print mr-2"></i> Print Sekarang</button>
                                 </div>
                             </div>
@@ -1816,7 +1824,7 @@
                         <div className="w-full md:w-80 bg-white border-l p-4 flex flex-col h-56 md:h-auto shrink-0">
                             <h3 className="font-bold text-center mb-4 border-b pb-2">Navigasi Soal</h3>
                             <div className="flex-1 overflow-y-auto pr-2">
-                                <div className="grid grid-cols-5 gap-2">
+                                <div className="grid grid-cols-5 md:grid-cols-5 gap-2">
                                     {soalList.map((s, i) => {
                                         let isAnswered = false;
                                         if (s.Tipe_Soal === 'Mencocokkan') {
