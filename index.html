@@ -15,12 +15,29 @@
     <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        /* CSS KHUSUS PRINT KARTU 10 PER HALAMAN A4 */
+        /* CSS KHUSUS PRINT */
         @media print {
-            @page { size: A4 portrait; margin: 8mm; }
-            body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            @page { size: A4 portrait; margin: 10mm; }
+            body, html, #root { 
+                background-color: white !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+                height: auto !important; 
+                overflow: visible !important;
+            }
             .print-hidden { display: none !important; }
+            .print-visible { display: block !important; }
             
+            /* KELAS SAKTI UNTUK MENGATASI BLANK PAGE SAAT CETAK MODAL */
+            .print-modal {
+                position: static !important;
+                overflow: visible !important;
+                height: auto !important;
+                background-color: white !important;
+                display: block !important;
+            }
+
+            /* Aturan Layout untuk Cetak Kartu Massal agar tidak terpotong */
             .print-card-container { 
                 display: flex !important; 
                 flex-wrap: wrap !important; 
@@ -32,28 +49,43 @@
                 width: 48% !important; 
                 height: 52mm !important; 
                 display: inline-block !important;
-                margin-bottom: 4mm !important;
+                margin-bottom: 5mm !important;
                 padding: 6px !important;
                 border: 1px solid #000 !important;
                 border-radius: 8px !important;
                 box-sizing: border-box !important;
                 page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
-            .print-title { font-size: 11px !important; font-weight: 900 !important; margin: 0 !important; line-height: 1.2 !important; }
-            .print-subtitle { font-size: 8px !important; font-weight: bold !important; margin: 0 !important; }
-            .print-text-tiny { font-size: 8px !important; line-height: 1.1 !important; margin: 0 !important; }
-            .print-text-small { font-size: 10px !important; line-height: 1.1 !important; margin: 0 !important; }
+
+            /* Aturan untuk Tabel Laporan/PDF */
+            table { page-break-inside: auto !important; width: 100% !important; border-collapse: collapse !important; }
+            tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+            th { background-color: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; color: black !important; }
+            td { border: 1px solid #cbd5e1 !important; color: black !important; }
+            thead { display: table-header-group !important; }
+            tfoot { display: table-footer-group !important; }
+
+            /* Ukuran font kartu */
+            .print-title { font-size: 11px !important; font-weight: 900 !important; margin: 0 !important; line-height: 1.2 !important; color: black !important;}
+            .print-subtitle { font-size: 8px !important; font-weight: bold !important; margin: 0 !important; color: black !important;}
+            .print-text-tiny { font-size: 8px !important; line-height: 1.1 !important; margin: 0 !important; color: black !important;}
+            .print-text-small { font-size: 10px !important; line-height: 1.1 !important; margin: 0 !important; color: black !important;}
             .print-qr { width: 45px !important; height: 45px !important; }
             .print-logo { height: 22px !important; margin-bottom: 2px !important; }
         }
         
-        /* Custom scrollbar untuk desktop */
+        @media screen {
+            .print-visible { display: none !important; }
+        }
+
+        /* Custom scrollbar */
         .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Sembunyikan scrollbar untuk bottom nav mobile (Tampilan ala Aplikasi) */
+        /* Sembunyikan scrollbar untuk bottom nav mobile */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -67,7 +99,7 @@
            ========================================== */
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxubjnNnjEBDploZqA4ksmim5yQ58WX3Ocg7lZh5dLhN5kESJiDWTrCFxQunOYiKphRzA/exec";
 
-        // FUNGSI GLOBAL: Konverter Link Google Drive Anti-Blokir (Bypass CORS)
+        // FUNGSI GLOBAL: Konverter Link Google Drive Anti-Blokir
         const getSafeImageUrl = (url) => {
             if (!url) return '';
             let str = String(url).trim();
@@ -80,7 +112,6 @@
             return str;
         };
 
-        // FUNGSI GLOBAL: Deteksi Format URL Gambar
         const isImageUrl = (val) => {
             if (!val) return false;
             const str = String(val).trim().toLowerCase();
@@ -114,7 +145,9 @@
                     namaUjian: 'Ujian Akhir Semester', 
                     logo: '',
                     loginBackground: '',
-                    daftarRombel: 'Kelas 1,Kelas 2,Kelas 3,Kelas 4,Kelas 5,Kelas 6'
+                    daftarRombel: 'Kelas 1,Kelas 2,Kelas 3,Kelas 4,Kelas 5,Kelas 6',
+                    adminUser: 'admin',
+                    adminPass: 'admin'
                 };
             });
 
@@ -148,6 +181,8 @@
                             });
                             
                             if(!newConfig.daftarRombel) newConfig.daftarRombel = 'Kelas 1,Kelas 2,Kelas 3,Kelas 4,Kelas 5,Kelas 6';
+                            if(!newConfig.adminUser) newConfig.adminUser = 'admin';
+                            if(!newConfig.adminPass) newConfig.adminPass = 'admin';
                             setAppConfig(newConfig);
                         }
 
@@ -246,7 +281,7 @@
             const [searchTerm, setSearchTerm] = useState('');
             const validData = Array.isArray(data) ? data.filter(r => r && typeof r === 'object' && Object.keys(r).length > 0) : [];
 
-            if (validData.length === 0) return <div className="p-6 bg-white rounded-xl border text-slate-500">Tidak ada data di sistem.</div>;
+            if (validData.length === 0) return <div className="p-6 bg-white rounded-xl border text-slate-500 print-hidden">Tidak ada data di sistem.</div>;
             
             const headers = Object.keys(validData[0]);
             const filteredData = validData.filter(row => Object.values(row).some(val => val != null && String(val).toLowerCase().includes(searchTerm.toLowerCase())));
@@ -259,14 +294,14 @@
 
             return (
                 <div>
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 print-hidden">
                         <h2 className="text-2xl font-bold text-slate-800 w-full md:w-auto">{title}</h2>
                         <div className="flex flex-col md:flex-row w-full md:w-auto gap-2">
                             <input type="text" placeholder="Cari data..." className="w-full md:w-64 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 text-sm outline-none" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                             <button onClick={handleExportCSV} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2"><i className="fas fa-file-excel"></i> Export CSV</button>
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+                    <div className="bg-white rounded-xl shadow-sm border overflow-x-auto print:border-none print:shadow-none print:overflow-visible">
                         <table className="w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-slate-100 text-slate-600"><tr>{headers.map(h => <th key={h} className="p-4 border-b font-bold">{String(h).replace(/_/g, ' ')}</th>)}</tr></thead>
                             <tbody>
@@ -309,9 +344,14 @@
             const [password, setPassword] = useState('');
             const [error, setError] = useState('');
 
+            const adminUsername = appConfig.adminUser || 'admin';
+            const adminPassword = appConfig.adminPass || 'admin';
+
             const handleSubmit = (e) => {
                 e.preventDefault(); setError('');
-                if (nisn === 'admin' && password === 'admin') return onLogin('admin', {Nama_Guru: 'Administrator', Kelas_Guru: 'Semua'});
+                if (nisn === adminUsername && password === adminPassword) {
+                    return onLogin('admin', {Nama_Guru: 'Administrator', Kelas_Guru: 'Semua'});
+                }
                 const guru = (dbGuru || []).find(g => g && String(g.Username) === String(nisn) && String(g.Password) === String(password));
                 if (guru) return onLogin('admin', { ...guru, role: 'guru' });
                 const siswa = (dbSiswa || []).find(s => s && String(s.NISN) === String(nisn) && String(s.Password) === String(password));
@@ -354,7 +394,7 @@
         };
 
         /* ==========================================
-           DASHBOARD PORTAL (ADMIN & GURU) - MOBILE APP LIKE UI
+           DASHBOARD PORTAL (ADMIN & GURU)
            ========================================== */
         const DashboardPortal = ({ user, onLogout, data, refreshData, apiCall, setDbSoal, setDbGuru, setDbSiswa, setDbJadwal, appConfig, setAppConfig }) => {
             const [activeTab, setActiveTab] = useState('dashboard');
@@ -373,7 +413,6 @@
                 .filter(Boolean)
                 .sort();
 
-            // Label Tab Dipendekkan agar muat di layar HP
             let tabs = [
                 { id: 'dashboard', label: 'Home', icon: 'fa-home' },
                 { id: 'soal', label: 'Soal', icon: 'fa-file-lines' },
@@ -411,8 +450,8 @@
             };
 
             return (
-                <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-slate-50">
-                    {/* MOBILE TOP HEADER (TAMPIL HANYA DI HP) */}
+                <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-slate-50 print:block print:h-auto print:overflow-visible">
+                    {/* MOBILE TOP HEADER */}
                     <div className="md:hidden bg-red-700 text-white p-4 flex justify-between items-center shrink-0 shadow-md z-20 print-hidden">
                         <div className="flex items-center gap-3">
                             {appConfig.logo ? (
@@ -433,7 +472,7 @@
                         </div>
                     </div>
 
-                    {/* DESKTOP SIDEBAR (TAMPIL HANYA DI PC/LAPTOP) */}
+                    {/* DESKTOP SIDEBAR */}
                     <div className="hidden md:flex w-64 bg-red-900 text-white flex-col shrink-0 print-hidden shadow-xl z-20">
                         <div className="p-5 border-b border-red-800">
                             <div className="flex items-center gap-3 mb-2">
@@ -479,8 +518,8 @@
                         </div>
                     </div>
 
-                    {/* MAIN CONTENT (FLEX-1 UNTUK MENGISI SISA RUANG) */}
-                    <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 relative print:p-0 print:bg-white print:m-0 w-full">
+                    {/* MAIN CONTENT */}
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 relative w-full print:block print:overflow-visible print:h-auto print:p-0 print:m-0 print:bg-white">
                         {activeTab === 'dashboard' && (
                             <div className="print-hidden">
                                 <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-slate-800">Dashboard Utama</h2>
@@ -498,8 +537,8 @@
                         )}
                         {activeTab === 'soal' && <ManajemenSoal dbSoal={dbSoal} setDbSoal={setDbSoal} user={user} isAdmin={isAdmin} apiCall={apiCall} dbGuru={dbGuru} availableClasses={availableClasses} />}
                         {activeTab === 'siswa' && <DataPeserta data={displayedSiswa} setDbSiswa={setDbSiswa} apiCall={apiCall} isAdmin={isAdmin} userKelas={userKelas} availableClasses={availableClasses} appConfig={appConfig} setAppConfig={setAppConfig} />}
-                        {activeTab === 'hasil' && <HasilUjianHierarchy dbHasil={dbHasil} dbSiswa={dbSiswa} isAdmin={isAdmin} userKelas={userKelas} availableClasses={availableClasses} />}
-                        {activeTab === 'rekap' && <RekapitulasiHasil dbHasil={dbHasil} dbSiswa={dbSiswa} isAdmin={isAdmin} userKelas={userKelas} availableClasses={availableClasses} />}
+                        {activeTab === 'hasil' && <HasilUjianHierarchy dbHasil={dbHasil} dbSiswa={dbSiswa} isAdmin={isAdmin} userKelas={userKelas} availableClasses={availableClasses} appConfig={appConfig} />}
+                        {activeTab === 'rekap' && <RekapitulasiHasil dbHasil={dbHasil} dbSiswa={dbSiswa} isAdmin={isAdmin} userKelas={userKelas} availableClasses={availableClasses} appConfig={appConfig} />}
                         {activeTab === 'rombel' && isAdmin && <ManajemenRombel dbSiswa={dbSiswa} setDbSiswa={setDbSiswa} apiCall={apiCall} availableClasses={availableClasses} appConfig={appConfig} setAppConfig={setAppConfig} />}
                         {activeTab === 'cetakkartu' && isAdmin && <CetakKartuAdmin dbSiswa={dbSiswa} appConfig={appConfig} availableClasses={availableClasses} />}
                         {activeTab === 'guru' && isAdmin && <ManajemenGuru dbGuru={dbGuru} setDbGuru={setDbGuru} apiCall={apiCall} availableClasses={availableClasses} />}
@@ -508,8 +547,8 @@
                         {showPwdModal && <GantiPasswordModal onClose={() => setShowPwdModal(false)} onSubmit={handleChangePassword} />}
                     </div>
 
-                    {/* MOBILE BOTTOM NAVIGATION (TAMPIL HANYA DI HP - SHOPEE STYLE) */}
-                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex overflow-x-auto z-30 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] hide-scrollbar pb-1">
+                    {/* MOBILE BOTTOM NAVIGATION */}
+                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex overflow-x-auto z-30 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] hide-scrollbar pb-1 print-hidden">
                         {tabs.map(tab => (
                             <button 
                                 key={tab.id}
@@ -703,6 +742,8 @@
             const [namaUjian, setNamaUjian] = useState(appConfig.namaUjian || '');
             const [logoBase64, setLogoBase64] = useState(appConfig.logo || '');
             const [loginBgBase64, setLoginBgBase64] = useState(appConfig.loginBackground || '');
+            const [adminUser, setAdminUser] = useState(appConfig.adminUser || 'admin');
+            const [adminPass, setAdminPass] = useState(appConfig.adminPass || 'admin');
             const [isUploading, setIsUploading] = useState(false);
 
             const [jadwalForm, setJadwalForm] = useState({ ID_Tes: '', Mapel: '', Kelas: isAdmin ? '' : userKelas, Tanggal: '', Waktu: '', Zona_Waktu: 'WITA', Durasi: 120, Token: '', Status: 'Aktif' });
@@ -710,10 +751,10 @@
 
             const handleSaveIdentitas = (e) => {
                 e.preventDefault();
-                const newConf = { ...appConfig, namaSekolah, namaUjian, logo: logoBase64, loginBackground: loginBgBase64 };
+                const newConf = { ...appConfig, namaSekolah, namaUjian, logo: logoBase64, loginBackground: loginBgBase64, adminUser, adminPass };
                 setAppConfig(newConf);
                 apiCall('saveConfig', newConf);
-                alert("Identitas & Latar Belakang berhasil disimpan permanen di Cloud!");
+                alert("Identitas, Latar Belakang & Akses Admin berhasil disimpan permanen di Cloud!");
             };
 
             const handleImageUploadToDrive = async (file, maxWidth, callback) => {
@@ -815,6 +856,16 @@
                                         <label className="block text-sm font-bold mb-1">Background Login</label>
                                         <input type="file" accept="image/*" onChange={e => { if(e.target.files[0]) handleImageUploadToDrive(e.target.files[0], 1280, setLoginBgBase64); }} className="w-full text-sm border-0 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100" />
                                         {loginBgBase64 && <img src={getSafeImageUrl(loginBgBase64)} className="mt-3 h-20 w-full object-cover border p-1 rounded" onError={(e) => { e.target.style.display='none'; }} />}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t mt-4 border-slate-200">
+                                    <div>
+                                        <label className="block text-sm font-bold mb-1 text-slate-700">Username Login Admin</label>
+                                        <input required type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none" value={adminUser} onChange={e=>setAdminUser(e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold mb-1 text-slate-700">Password Admin</label>
+                                        <input required type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none" value={adminPass} onChange={e=>setAdminPass(e.target.value)} />
                                     </div>
                                 </div>
                                 <button disabled={isUploading} type="submit" className="bg-red-600 text-white font-bold px-6 py-2.5 rounded-lg shadow hover:bg-red-700 transition mt-2 disabled:opacity-50">
@@ -955,7 +1006,7 @@
 
                     {/* PRINT OVERLAY MASSAL */}
                     {isPrintingMassal && (
-                        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+                        <div className="fixed inset-0 z-50 bg-white overflow-y-auto print-modal">
                             <div className="p-4 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10 shadow-md print-hidden">
                                 <div className="font-bold">Pratinjau Cetak Massal - {kelasCetak} ({siswaKelas.length} Kartu)</div>
                                 <div className="flex gap-3">
@@ -963,7 +1014,7 @@
                                     <button onClick={() => window.print()} className="bg-red-600 px-4 py-1.5 rounded font-bold hover:bg-red-500 transition shadow"><i className="fas fa-print mr-2"></i> Print Sekarang</button>
                                 </div>
                             </div>
-                            <div className="p-4 md:p-8 print-card-container">
+                            <div className="p-4 md:p-8 print-card-container print:p-0">
                                 {siswaKelas.map((siswa, idx) => (
                                     <div key={idx} className="print-card shadow-md">
                                         <div className="flex items-center justify-center gap-2 mb-3 border-b border-black pb-1.5">
@@ -1009,7 +1060,7 @@
             };
 
             return (
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-3 gap-6 print-hidden">
                     <div className="md:col-span-2">
                         <DataTable title="Daftar Akun Guru Kelas" data={dbGuru} exportName="Akun_Guru" />
                     </div>
@@ -1424,9 +1475,9 @@
                 <div>
                     {isAdmin && viewStep === 'kelas' && (
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-800 mb-2"><i className="fas fa-folder-open text-red-600 mr-2"></i> Verifikasi Bank Soal</h2>
-                            <p className="text-slate-500 mb-8">Pilih kelas untuk melihat, menambah, dan memverifikasi soal pada tiap tingkatan kelas.</p>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <h2 className="text-2xl font-bold text-slate-800 mb-2 print-hidden"><i className="fas fa-folder-open text-red-600 mr-2"></i> Verifikasi Bank Soal</h2>
+                            <p className="text-slate-500 mb-8 print-hidden">Pilih kelas untuk melihat, menambah, dan memverifikasi soal pada tiap tingkatan kelas.</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 print-hidden">
                                 {availableClasses.map(namaKelas => {
                                     const count = (dbSoal || []).filter(s => s && String(getKelasOfSoal(s)).trim().toLowerCase() === String(namaKelas).trim().toLowerCase()).length;
                                     return (
@@ -1445,7 +1496,7 @@
 
                     {viewStep === 'mapel' && (
                         <div>
-                            <div className="flex items-center gap-4 mb-8">
+                            <div className="flex items-center gap-4 mb-8 print-hidden">
                                 {isAdmin && (
                                     <button onClick={handleBack} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold transition">
                                         <i className="fas fa-arrow-left mr-2"></i> Kembali
@@ -1453,7 +1504,7 @@
                                 )}
                                 <h2 className="text-2xl font-bold text-slate-800">Mata Pelajaran {isAdmin ? `- ${selectedKelas}` : ''}</h2>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 print-hidden">
                                 {MAPEL_LIST.map(m => {
                                     const mSafe = String(m).trim().toLowerCase();
                                     const count = isAdmin 
@@ -1473,7 +1524,7 @@
 
                     {viewStep === 'soal' && (
                         <div>
-                            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 print-hidden">
                                 <div className="flex items-center gap-3">
                                     <button onClick={handleBack} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg font-bold transition">
                                         <i className="fas fa-arrow-left"></i>
@@ -1527,10 +1578,10 @@
                                         <h3 className="text-xl font-bold mb-4 border-b pb-2">{isEditing ? 'Lihat/Edit Soal' : 'Buat Soal Baru'}</h3>
                                         <form onSubmit={handleSubmitManual} className="space-y-4">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div><label className="text-sm font-bold block mb-1">ID Soal</label><input required disabled={isEditing} type="text" className={`w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 ${isEditing ? 'bg-slate-100 text-slate-500' : ''}`} value={form.ID_Soal || ''} onChange={e=>setForm({...form, ID_Soal: e.target.value})} /></div>
+                                                <div><label className="text-sm font-bold block mb-1">ID Soal</label><input required disabled={isEditing || isAdmin} type="text" className={`w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 ${isEditing ? 'bg-slate-100 text-slate-500' : ''}`} value={form.ID_Soal || ''} onChange={e=>setForm({...form, ID_Soal: e.target.value})} /></div>
                                                 <div>
                                                     <label className="text-sm font-bold block mb-1">Tipe Soal</label>
-                                                    <select className="w-full border p-2 rounded bg-white font-bold outline-none focus:ring-2 focus:ring-red-500" value={form.Tipe_Soal || ''} onChange={handleTypeChange}>
+                                                    <select disabled={isAdmin} className="w-full border p-2 rounded bg-white font-bold outline-none focus:ring-2 focus:ring-red-500 disabled:bg-slate-100 disabled:text-slate-500" value={form.Tipe_Soal || ''} onChange={handleTypeChange}>
                                                         <option value="Pilihan Ganda">Pilihan Ganda (A-D)</option><option value="Benar/Salah">Benar atau Salah</option><option value="Mencocokkan">Mencocokkan</option>
                                                     </select>
                                                 </div>
@@ -1543,10 +1594,10 @@
                                             </div>
                                             <div className="p-3 bg-slate-50 border rounded-lg">
                                                 <label className="text-sm font-bold block mb-1">Upload Gambar / Ilustrasi (Soal)</label>
-                                                <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full text-sm mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100" />
+                                                <input disabled={isAdmin} type="file" accept="image/*" onChange={handleImageUpload} className="w-full text-sm mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 disabled:opacity-50" />
                                                 {form.Media_URL && <img src={getSafeImageUrl(form.Media_URL)} className="mt-2 h-20 object-contain rounded border p-1 bg-white" onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150x50?text=Gagal+Dimuat'; }} />}
                                             </div>
-                                            <div><label className="text-sm font-bold block mb-1">Pertanyaan / Perintah</label><textarea required className="w-full border p-2 rounded h-20 outline-none focus:ring-2 focus:ring-red-500" value={form.Pertanyaan || ''} onChange={e=>setForm({...form, Pertanyaan: e.target.value})}></textarea></div>
+                                            <div><label className="text-sm font-bold block mb-1">Pertanyaan / Perintah</label><textarea required disabled={isAdmin} className="w-full border p-2 rounded h-20 outline-none focus:ring-2 focus:ring-red-500 disabled:bg-slate-100 disabled:text-slate-500" value={form.Pertanyaan || ''} onChange={e=>setForm({...form, Pertanyaan: e.target.value})}></textarea></div>
                                             
                                             {form.Tipe_Soal === 'Pilihan Ganda' && (
                                                 <React.Fragment>
@@ -1555,18 +1606,20 @@
                                                             <div key={opsi}>
                                                                 <label className="text-sm font-bold block mb-1">Opsi {opsi}</label>
                                                                 <div className="flex gap-2">
-                                                                    <input required type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500" value={form[`Opsi_${opsi}`] || ''} onChange={e=>setForm({...form, [`Opsi_${opsi}`]: e.target.value})} placeholder={`Teks/Link Opsi ${opsi}...`} />
-                                                                    <label className={`shrink-0 bg-slate-200 px-3 flex items-center justify-center rounded cursor-pointer hover:bg-slate-300 transition ${uploadingOpsi === `Opsi_${opsi}` ? 'opacity-50' : ''}`} title={`Upload Gambar Opsi ${opsi}`}>
-                                                                        {uploadingOpsi === `Opsi_${opsi}` ? <i className="fas fa-spinner fa-spin text-slate-600"></i> : <i className="fas fa-image text-slate-600"></i>}
-                                                                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleOpsiImageUpload(e.target.files[0], `Opsi_${opsi}`)} />
-                                                                    </label>
+                                                                    <input required disabled={isAdmin} type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 disabled:bg-slate-100 disabled:text-slate-500" value={form[`Opsi_${opsi}`] || ''} onChange={e=>setForm({...form, [`Opsi_${opsi}`]: e.target.value})} placeholder={`Teks/Link Opsi ${opsi}...`} />
+                                                                    {!isAdmin && (
+                                                                        <label className={`shrink-0 bg-slate-200 px-3 flex items-center justify-center rounded cursor-pointer hover:bg-slate-300 transition ${uploadingOpsi === `Opsi_${opsi}` ? 'opacity-50' : ''}`} title={`Upload Gambar Opsi ${opsi}`}>
+                                                                            {uploadingOpsi === `Opsi_${opsi}` ? <i className="fas fa-spinner fa-spin text-slate-600"></i> : <i className="fas fa-image text-slate-600"></i>}
+                                                                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleOpsiImageUpload(e.target.files[0], `Opsi_${opsi}`)} />
+                                                                        </label>
+                                                                    )}
                                                                 </div>
                                                                 {isImageUrl(form[`Opsi_${opsi}`]) && <img src={getSafeImageUrl(form[`Opsi_${opsi}`])} className="mt-2 h-16 object-contain rounded border p-1 bg-white" onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150x50?text=Gagal+Dimuat'; }} />}
                                                             </div>
                                                         ))}
                                                     </div>
                                                     <div><label className="text-sm font-bold block mb-1 text-red-600">Kunci Jawaban</label>
-                                                        <select className="w-full border p-2 rounded bg-red-50 font-bold outline-none focus:ring-2 focus:ring-red-500" value={form.Kunci || ''} onChange={e=>setForm({...form, Kunci: e.target.value})}><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+                                                        <select disabled={isAdmin} className="w-full border p-2 rounded bg-red-50 font-bold outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-80" value={form.Kunci || ''} onChange={e=>setForm({...form, Kunci: e.target.value})}><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
                                                     </div>
                                                 </React.Fragment>
                                             )}
@@ -1578,7 +1631,7 @@
                                                         <div><label className="text-sm font-bold block mb-1 text-slate-400">Opsi B</label><input disabled type="text" className="w-full border p-2 rounded bg-slate-100" value="Salah" /></div>
                                                     </div>
                                                     <div><label className="text-sm font-bold block mb-1 text-red-600">Kunci Jawaban</label>
-                                                        <select className="w-full border p-2 rounded bg-red-50 font-bold outline-none focus:ring-2 focus:ring-red-500" value={form.Kunci || ''} onChange={e=>setForm({...form, Kunci: e.target.value})}><option value="A">A (Benar)</option><option value="B">B (Salah)</option></select>
+                                                        <select disabled={isAdmin} className="w-full border p-2 rounded bg-red-50 font-bold outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-80" value={form.Kunci || ''} onChange={e=>setForm({...form, Kunci: e.target.value})}><option value="A">A (Benar)</option><option value="B">B (Salah)</option></select>
                                                     </div>
                                                 </React.Fragment>
                                             )}
@@ -1588,13 +1641,13 @@
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="space-y-2">
                                                             <label className="text-sm font-bold block mb-1">Daftar Premis (Kiri)</label>
-                                                            <input required type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500" value={form.Opsi_A || ''} onChange={e=>setForm({...form, Opsi_A: e.target.value})} placeholder="Premis 1" />
-                                                            <input required type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500" value={form.Opsi_B || ''} onChange={e=>setForm({...form, Opsi_B: e.target.value})} placeholder="Premis 2" />
+                                                            <input required disabled={isAdmin} type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 disabled:bg-slate-100 disabled:text-slate-500" value={form.Opsi_A || ''} onChange={e=>setForm({...form, Opsi_A: e.target.value})} placeholder="Premis 1" />
+                                                            <input required disabled={isAdmin} type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 disabled:bg-slate-100 disabled:text-slate-500" value={form.Opsi_B || ''} onChange={e=>setForm({...form, Opsi_B: e.target.value})} placeholder="Premis 2" />
                                                         </div>
                                                         <div className="space-y-2">
                                                             <label className="text-sm font-bold block mb-1">Jawaban (Kanan)</label>
-                                                            <input required type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500" value={form.Opsi_C || ''} onChange={e=>setForm({...form, Opsi_C: e.target.value})} placeholder="Jawaban 1" />
-                                                            <input required type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500" value={form.Opsi_D || ''} onChange={e=>setForm({...form, Opsi_D: e.target.value})} placeholder="Jawaban 2" />
+                                                            <input required disabled={isAdmin} type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 disabled:bg-slate-100 disabled:text-slate-500" value={form.Opsi_C || ''} onChange={e=>setForm({...form, Opsi_C: e.target.value})} placeholder="Jawaban 1" />
+                                                            <input required disabled={isAdmin} type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 disabled:bg-slate-100 disabled:text-slate-500" value={form.Opsi_D || ''} onChange={e=>setForm({...form, Opsi_D: e.target.value})} placeholder="Jawaban 2" />
                                                         </div>
                                                     </div>
                                                     <div><label className="text-sm font-bold block mb-1 text-red-600">Kunci Jawaban</label><input disabled type="text" className="w-full border p-2 rounded bg-red-50 font-bold text-red-700" value="Premis 1 = Jawaban 1, Premis 2 = Jawaban 2" /></div>
@@ -1602,8 +1655,8 @@
                                             )}
 
                                             <div className="flex gap-3 pt-4 border-t mt-2">
-                                                <button type="button" onClick={()=>setShowModal(false)} className="flex-1 bg-slate-200 py-2.5 rounded-lg font-bold hover:bg-slate-300 transition">Batal</button>
-                                                <button disabled={uploadingOpsi !== null} type="submit" className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-bold shadow hover:bg-red-700 transition disabled:opacity-50">{isEditing ? 'Simpan Editan' : 'Simpan Baru'}</button>
+                                                <button type="button" onClick={()=>setShowModal(false)} className="flex-1 bg-slate-200 py-2.5 rounded-lg font-bold hover:bg-slate-300 transition">{isAdmin ? 'Tutup' : 'Batal'}</button>
+                                                {!isAdmin && <button disabled={uploadingOpsi !== null} type="submit" className="flex-1 bg-red-600 text-white py-2.5 rounded-lg font-bold shadow hover:bg-red-700 transition disabled:opacity-50">{isEditing ? 'Simpan Editan' : 'Simpan Baru'}</button>}
                                             </div>
                                         </form>
                                     </div>
@@ -1669,7 +1722,7 @@
             return (
                 <div>
                     {isAdmin && viewStep === 'kelas' && (
-                        <div>
+                        <div className="print-hidden">
                             <h2 className="text-2xl font-bold text-slate-800 mb-2"><i className="fas fa-chart-bar text-red-600 mr-2"></i> Hasil Ujian (Pilih Kelas)</h2>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
                                 {availableClasses.map(namaKelas => (
@@ -1683,7 +1736,7 @@
                     )}
 
                     {viewStep === 'mapel' && (
-                        <div>
+                        <div className="print-hidden">
                             <div className="flex items-center gap-4 mb-8">
                                 {isAdmin && <button onClick={handleBack} className="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg font-bold"><i className="fas fa-arrow-left"></i></button>}
                                 <h2 className="text-xl md:text-2xl font-bold text-slate-800">Hasil Ujian {isAdmin ? `- ${selectedKelas}` : ''}</h2>
@@ -1705,27 +1758,35 @@
                     )}
 
                     {viewStep === 'hasil' && (
-                        <div>
-                            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                        <div className="print-area">
+                            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 print-hidden">
                                 <div className="flex items-center gap-3">
                                     <button onClick={handleBack} className="bg-slate-200 hover:bg-slate-300 px-3 py-2 rounded-lg font-bold"><i className="fas fa-arrow-left"></i></button>
                                     <h2 className="text-xl md:text-2xl font-bold text-slate-800">Nilai: {selectedMapel}</h2>
                                 </div>
                                 <div className="flex gap-2">
                                     <input type="text" placeholder="Cari NISN, Skor..." className="w-full md:w-64 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                                    <button onClick={handleExportCSV} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+                                    <button onClick={() => window.print()} className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow">
+                                        <i className="fas fa-file-pdf"></i> Cetak PDF
+                                    </button>
+                                    <button onClick={handleExportCSV} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow">
                                         <i className="fas fa-file-excel"></i> CSV
                                     </button>
                                 </div>
                             </div>
-                            <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+                            <div className="bg-white rounded-xl shadow-sm border overflow-x-auto print:border-none print:shadow-none print:overflow-visible">
+                                <div className="print-visible text-center mb-6 border-b-2 border-black pb-4">
+                                    <h2 className="text-2xl font-black text-black uppercase">Daftar Nilai Hasil Ujian</h2>
+                                    <h3 className="text-lg font-bold text-black mt-1">MATA PELAJARAN: {selectedMapel} - KELAS: {selectedKelas}</h3>
+                                    <p className="text-sm font-medium mt-1 uppercase">{appConfig?.namaSekolah || 'Sekolah'}</p>
+                                </div>
                                 <table className="w-full text-left text-sm whitespace-nowrap">
-                                    <thead className="bg-slate-100 text-slate-600"><tr><th className="p-4 border-b">Waktu Submit</th><th className="p-4 border-b">NISN</th><th className="p-4 border-b">Mapel Sesi</th><th className="p-4 border-b text-center">Skor Akhir</th></tr></thead>
+                                    <thead className="bg-slate-100 text-slate-600"><tr><th className="p-4 border-b">No</th><th className="p-4 border-b">Waktu Submit</th><th className="p-4 border-b">NISN</th><th className="p-4 border-b">Mapel Sesi</th><th className="p-4 border-b text-center">Skor Akhir</th></tr></thead>
                                     <tbody>
                                         {displayHasil.map((row, i) => (
-                                            <tr key={i} className="hover:bg-slate-50 border-b"><td className="p-4">{row.Timestamp}</td><td className="p-4 font-mono font-bold">{row.NISN}</td><td className="p-4">{row.Mapel}</td><td className="p-4 text-center font-black text-blue-600 text-lg">{row.Skor}</td></tr>
+                                            <tr key={i} className="hover:bg-slate-50 border-b"><td className="p-4 font-bold">{i+1}</td><td className="p-4">{row.Timestamp}</td><td className="p-4 font-mono font-bold">{row.NISN}</td><td className="p-4">{row.Mapel}</td><td className="p-4 text-center font-black text-blue-600 text-lg">{row.Skor}</td></tr>
                                         ))}
-                                        {displayHasil.length === 0 && <tr><td colSpan="4" className="p-6 text-center text-slate-500">Belum ada data nilai.</td></tr>}
+                                        {displayHasil.length === 0 && <tr><td colSpan="5" className="p-6 text-center text-slate-500">Belum ada data nilai.</td></tr>}
                                     </tbody>
                                 </table>
                             </div>
@@ -1738,12 +1799,12 @@
         /* ==========================================
            SUB KOMPONEN REKAPITULASI HASIL (MATRIKS)
            ========================================== */
-        const RekapitulasiHasil = ({ dbHasil, dbSiswa, isAdmin, userKelas, availableClasses }) => {
+        const RekapitulasiHasil = ({ dbHasil, dbSiswa, isAdmin, userKelas, availableClasses, appConfig }) => {
             const [selectedKelas, setSelectedKelas] = useState(isAdmin ? '' : userKelas);
 
             if (isAdmin && !selectedKelas) {
                 return (
-                    <div>
+                    <div className="print-hidden">
                         <h2 className="text-2xl font-bold text-slate-800 mb-2"><i className="fas fa-table text-red-600 mr-2"></i> Rekapitulasi Hasil Akhir</h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
                             {availableClasses.map(namaKelas => (
@@ -1781,131 +1842,53 @@
             };
 
             return (
-                <div>
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <div className="print-area">
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 print-hidden">
                         <div className="flex items-center gap-3">
                             {isAdmin && <button onClick={() => setSelectedKelas('')} className="bg-slate-200 hover:bg-slate-300 px-3 py-2 rounded-lg font-bold"><i className="fas fa-arrow-left"></i></button>}
                             <h2 className="text-xl md:text-2xl font-bold text-slate-800">Rekapitulasi: {selectedKelas}</h2>
                         </div>
-                        <button onClick={handleExportCSV} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                            <i className="fas fa-file-excel"></i> Export Rekap
-                        </button>
+                        <div className="flex gap-2">
+                            <button onClick={() => window.print()} className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow">
+                                <i className="fas fa-file-pdf"></i> Cetak PDF
+                            </button>
+                            <button onClick={handleExportCSV} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow">
+                                <i className="fas fa-file-excel"></i> Export Rekap
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="bg-white rounded-xl shadow-sm border overflow-x-auto custom-scrollbar">
+                    <div className="bg-white rounded-xl shadow-sm border overflow-x-auto custom-scrollbar print:border-none print:shadow-none print:overflow-visible">
+                        <div className="print-visible text-center mb-6 border-b-2 border-black pb-4">
+                            <h2 className="text-2xl font-black text-black uppercase">Rekapitulasi Nilai Akhir</h2>
+                            <h3 className="text-lg font-bold text-black mt-1">KELAS: {selectedKelas}</h3>
+                            <p className="text-sm font-medium mt-1 uppercase">{appConfig?.namaSekolah || 'Sekolah'}</p>
+                        </div>
                         <table className="w-full text-left text-sm whitespace-nowrap min-w-max">
                             <thead className="bg-slate-100 text-slate-600">
                                 <tr>
-                                    <th className="p-4 border-b font-bold sticky left-0 bg-slate-100 z-10 w-24">NISN</th>
-                                    <th className="p-4 border-b font-bold sticky left-24 bg-slate-100 z-10 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">Nama Siswa</th>
+                                    <th className="p-4 border-b font-bold sticky left-0 bg-slate-100 z-10 w-12 print:static">No</th>
+                                    <th className="p-4 border-b font-bold sticky left-12 bg-slate-100 z-10 w-24 print:static">NISN</th>
+                                    <th className="p-4 border-b font-bold sticky left-36 bg-slate-100 z-10 shadow-[1px_0_2px_rgba(0,0,0,0.05)] print:static print:shadow-none">Nama Siswa</th>
                                     {MAPEL_LIST.map(m => <th key={m} className="p-4 border-b font-bold text-center">{m}</th>)}
-                                    <th className="p-4 border-b font-bold text-center text-blue-600 bg-blue-50">Rata-rata</th>
+                                    <th className="p-4 border-b font-bold text-center text-blue-600 bg-blue-50 print:bg-white print:text-black">Rata-rata</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {rekapData.length > 0 ? rekapData.map((row, i) => (
                                     <tr key={i} className="hover:bg-slate-50 border-b">
-                                        <td className="p-4 font-mono sticky left-0 bg-white z-10 w-24">{row.NISN}</td>
-                                        <td className="p-4 font-bold sticky left-24 bg-white z-10 shadow-[1px_0_2px_rgba(0,0,0,0.05)]">{row.Nama}</td>
+                                        <td className="p-4 font-bold sticky left-0 bg-white z-10 w-12 print:static">{i+1}</td>
+                                        <td className="p-4 font-mono sticky left-12 bg-white z-10 w-24 print:static">{row.NISN}</td>
+                                        <td className="p-4 font-bold sticky left-36 bg-white z-10 shadow-[1px_0_2px_rgba(0,0,0,0.05)] print:static print:shadow-none">{row.Nama}</td>
                                         {MAPEL_LIST.map(m => <td key={m} className={`p-4 text-center font-medium ${row[m] === '-' ? 'text-slate-300' : 'text-slate-700'}`}>{row[m]}</td>)}
-                                        <td className="p-4 text-center font-black text-blue-600 bg-blue-50/30">{row.Rata_Rata}</td>
+                                        <td className="p-4 text-center font-black text-blue-600 bg-blue-50/30 print:bg-white print:text-black">{row.Rata_Rata}</td>
                                     </tr>
                                 )) : (
-                                    <tr><td colSpan={MAPEL_LIST.length + 3} className="p-6 text-center text-slate-500">Tidak ada data siswa.</td></tr>
+                                    <tr><td colSpan={MAPEL_LIST.length + 4} className="p-6 text-center text-slate-500">Tidak ada data siswa.</td></tr>
                                 )}
                             </tbody>
                         </table>
                     </div>
-                </div>
-            );
-        };
-
-        /* ==========================================
-           LAPORAN BERITA ACARA (HANYA ADMIN)
-           ========================================== */
-        const LaporanBeritaAcara = ({ dbJadwal, dbSiswa, dbHasil, appConfig }) => {
-            const [selectedTes, setSelectedTes] = useState('');
-            const [isPrinting, setIsPrinting] = useState(false);
-
-            if (!dbJadwal || dbJadwal.length === 0) return <div className="p-6 bg-white rounded-xl border text-slate-500">Belum ada jadwal ujian di kelas ini.</div>;
-            
-            const jadwalAktif = dbJadwal.find(j => j && j.ID_Tes === selectedTes);
-            
-            let daftarHadir = jadwalAktif ? (dbSiswa || []).filter(s => s).map(siswa => {
-                const mapelJadwalSafe = String(jadwalAktif.Mapel).trim().toLowerCase();
-                const hasilSiswa = (dbHasil || []).find(h => h && String(h.NISN) === String(siswa.NISN) && h.Mapel && String(h.Mapel).trim().toLowerCase() === mapelJadwalSafe);
-                return { 
-                    ...siswa, 
-                    hadir: !!hasilSiswa, 
-                    skor: hasilSiswa ? hasilSiswa.Skor : '-', 
-                    timestamp: hasilSiswa ? hasilSiswa.Timestamp : '-' 
-                };
-            }) : [];
-
-            return (
-                <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-6 print-hidden">Laporan & Berita Acara</h2>
-                    <div className="bg-white p-6 rounded-xl shadow-sm border mb-6 print-hidden">
-                        <select className="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-white" value={selectedTes} onChange={(e) => setSelectedTes(e.target.value)}>
-                            <option value="">-- Pilih Ujian Dicetak --</option>
-                            {(dbJadwal || []).filter(j => j).map((j, i) => <option key={i} value={j.ID_Tes}>{j.Mapel} - {j.Waktu_Mulai}</option>)}
-                        </select>
-                        {jadwalAktif && <button onClick={() => setIsPrinting(true)} className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 w-full md:w-auto"><i className="fas fa-print mr-2"></i> Preview Cetak</button>}
-                    </div>
-
-                    {isPrinting && jadwalAktif && (
-                        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 print:bg-white print:absolute">
-                            <div className="min-h-screen flex justify-center p-6 print:p-0">
-                                <div className="bg-white p-10 rounded-xl max-w-4xl w-full print:shadow-none print:w-full print:p-0">
-                                    <div className="border-b-4 border-double border-black pb-4 mb-6 flex items-center gap-6">
-                                        {appConfig.logo ? <img src={getSafeImageUrl(appConfig.logo)} alt="Logo Sekolah" className="h-20 object-contain print:block" /> : <div className="h-20 w-20 bg-slate-100 flex items-center justify-center border border-black"><span className="text-xs">Logo</span></div>}
-                                        <div className="flex-1 text-center pr-20">
-                                            <h1 className="text-2xl font-black uppercase print:text-black">{appConfig.namaSekolah}</h1>
-                                            <p className="text-sm font-bold uppercase print:text-black">{appConfig.namaUjian}</p>
-                                            <p className="text-xs font-medium print:text-black">Laporan Resmi Evaluasi & Pelaksanaan Ujian</p>
-                                        </div>
-                                    </div>
-                                    <h2 className="text-xl font-bold text-center underline uppercase mb-6 print:text-black">Berita Acara Pelaksanaan Ujian</h2>
-                                    <div className="text-sm space-y-2 mb-8 print:text-black">
-                                        <p>Pada hari ini, telah dilaksanakan evaluasi akademik secara digital untuk sesi ujian berikut:</p>
-                                        <table className="mt-4 ml-4">
-                                            <tbody>
-                                                <tr><td className="w-40 font-bold">Mata Pelajaran / Kelas</td><td>: {jadwalAktif.Mapel}</td></tr>
-                                                <tr><td className="font-bold">Waktu Mulai</td><td>: {jadwalAktif.Waktu_Mulai}</td></tr>
-                                                <tr><td className="font-bold">Durasi Ujian</td><td>: {jadwalAktif.Durasi} Menit</td></tr>
-                                                <tr><td className="font-bold">Total Terdaftar</td><td>: {daftarHadir.length} Siswa</td></tr>
-                                                <tr><td className="font-bold">Hadir Ujian</td><td>: {daftarHadir.filter(s => s.hadir).length} Siswa</td></tr>
-                                                <tr><td className="font-bold">Tidak Hadir</td><td>: {daftarHadir.filter(s => !s.hadir).length} Siswa</td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <table className="w-full text-sm border-collapse border border-black mb-10 print:text-black">
-                                        <thead>
-                                            <tr><th className="border border-black p-2 bg-slate-100 print:bg-white w-12">No</th><th className="border border-black p-2 bg-slate-100 print:bg-white">NISN</th><th className="border border-black p-2 bg-slate-100 print:bg-white">Nama Siswa</th><th className="border border-black p-2 bg-slate-100 print:bg-white text-center">Kelas</th><th className="border border-black p-2 bg-slate-100 print:bg-white text-center">Kehadiran</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            {daftarHadir.map((siswa, idx) => (
-                                                <tr key={idx}>
-                                                    <td className="border border-black p-2 text-center">{idx + 1}</td><td className="border border-black p-2 font-mono">{siswa.NISN}</td><td className="border border-black p-2">{siswa.Nama}</td><td className="border border-black p-2 text-center">{siswa.Kelas}</td>
-                                                    <td className="border border-black p-2 text-center">{siswa.hadir ? <span className="font-bold text-green-600">Hadir</span> : <span className="font-bold text-red-600">Absen</span>}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                    <div className="flex justify-end mt-12 print:text-black">
-                                        <div className="text-center">
-                                            <p className="mb-16">Pengawas Ruangan,</p>
-                                            <p className="font-bold underline">___________________________</p>
-                                        </div>
-                                    </div>
-                                    <div className="mt-10 flex gap-4 print-hidden border-t pt-6">
-                                        <button onClick={() => setIsPrinting(false)} className="px-6 py-2 bg-slate-200 rounded-lg font-bold">Tutup</button>
-                                        <button onClick={()=>window.print()} className="flex-1 bg-red-600 text-white rounded-lg font-bold"><i className="fas fa-print"></i> Cetak Berita Acara</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             );
         };
@@ -1942,6 +1925,7 @@
                 return jadwalKelas === userKelas;
             });
 
+            // Waktu mulai ujian sudah tiba
             const isExamTimePassed = (waktuStr) => {
                 if (!waktuStr) return true;
                 try {
@@ -1952,6 +1936,21 @@
                     }
                     return true;
                 } catch(e) { return true; }
+            };
+
+            // Waktu Ujian Sudah Berakhir (Mulai + Durasi)
+            const isExamTimeEnded = (waktuStr, durasiMenit) => {
+                if (!waktuStr) return false;
+                try {
+                    const parts = waktuStr.split(' ');
+                    if (parts.length >= 2) {
+                        const examTime = new Date(`${parts[0]}T${parts[1]}:00`);
+                        const durationMs = (parseInt(durasiMenit) || 0) * 60000;
+                        const endTime = new Date(examTime.getTime() + durationMs);
+                        return now > endTime;
+                    }
+                    return false;
+                } catch(e) { return false; }
             };
 
             return (
@@ -1972,17 +1971,20 @@
                             {availableExams.map((jadwal) => {
                                 const isAktif = String(jadwal.Status).toLowerCase() === 'aktif';
                                 const isTimePassed = isExamTimePassed(jadwal.Waktu_Mulai);
+                                const isTimeEnded = isExamTimeEnded(jadwal.Waktu_Mulai, jadwal.Durasi);
                                 
                                 return (
                                     <div key={jadwal.ID_Tes} className="bg-white rounded-xl shadow-sm border p-6 flex flex-col hover:border-red-200 transition">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className={`px-2 py-1 text-xs font-bold rounded ${isAktif ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{jadwal.Status}</span>
+                                            <span className={`px-2 py-1 text-xs font-bold rounded ${isAktif && !isTimeEnded ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                                                {isTimeEnded ? 'Selesai' : jadwal.Status}
+                                            </span>
                                             <span className="text-slate-400 text-sm"><i className="far fa-clock"></i> {jadwal.Durasi} Menit</span>
                                         </div>
                                         <h3 className="font-bold text-lg text-slate-800">{jadwal.Mapel ? String(jadwal.Mapel).split(' - ')[0] : 'Ujian'}</h3>
                                         <p className="text-sm text-slate-500 mb-4">{jadwal.Waktu_Mulai}</p>
                                         
-                                        {isAktif ? (
+                                        {isAktif && !isTimeEnded ? (
                                             isTimePassed ? (
                                                 selectedExam?.ID_Tes === jadwal.ID_Tes ? (
                                                     <div className="flex gap-2 mt-auto">
@@ -1999,7 +2001,7 @@
                                             )
                                         ) : (
                                             <button disabled className="w-full bg-slate-100 text-slate-400 py-2 rounded font-bold mt-auto flex items-center justify-center gap-2">
-                                                Sesi Ditutup
+                                                {isTimeEnded ? "Waktu Habis" : "Sesi Ditutup"}
                                             </button>
                                         )}
                                     </div>
@@ -2035,6 +2037,13 @@
             const [timeLeft, setTimeLeft] = useState(parseInt(examData?.Durasi) * 60 || 0);
             const [showSummary, setShowSummary] = useState(false);
             
+            // Cek URL Gambar di Ujian
+            const isImageUrl = (val) => {
+                if (!val) return false;
+                const str = String(val).trim();
+                return str.startsWith('http') || str.startsWith('data:image');
+            };
+
             const mapelUtama = examData && examData.Mapel ? String(examData.Mapel).split(' - ')[0].trim() : '';
             const userKelasSafe = String(user?.Kelas || '').trim().toLowerCase();
 
