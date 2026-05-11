@@ -47,11 +47,15 @@
             .print-logo { height: 22px !important; margin-bottom: 2px !important; }
         }
         
-        /* Custom scrollbar */
+        /* Custom scrollbar untuk desktop */
         .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Sembunyikan scrollbar untuk bottom nav mobile (Tampilan ala Aplikasi) */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body>
@@ -234,7 +238,7 @@
         const StatCard = ({ title, value, icon, color }) => (
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
                 <div className={`${color} text-white w-12 h-12 flex items-center justify-center rounded-xl text-xl`}><i className={`fas ${icon}`}></i></div>
-                <div><div className="text-slate-500 text-sm font-medium">{title}</div><div className="text-2xl font-bold text-slate-800">{value}</div></div>
+                <div><div className="text-slate-500 text-sm font-medium leading-tight">{title}</div><div className="text-2xl font-bold text-slate-800">{value}</div></div>
             </div>
         );
 
@@ -256,10 +260,10 @@
             return (
                 <div>
                     <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                        <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
-                        <div className="flex w-full md:w-auto gap-2">
-                            <input type="text" placeholder="Cari data..." className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 text-sm outline-none" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                            <button onClick={handleExportCSV} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2"><i className="fas fa-file-excel"></i> Export CSV</button>
+                        <h2 className="text-2xl font-bold text-slate-800 w-full md:w-auto">{title}</h2>
+                        <div className="flex flex-col md:flex-row w-full md:w-auto gap-2">
+                            <input type="text" placeholder="Cari data..." className="w-full md:w-64 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 text-sm outline-none" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                            <button onClick={handleExportCSV} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2"><i className="fas fa-file-excel"></i> Export CSV</button>
                         </div>
                     </div>
                     <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
@@ -350,7 +354,7 @@
         };
 
         /* ==========================================
-           DASHBOARD PORTAL (ADMIN & GURU)
+           DASHBOARD PORTAL (ADMIN & GURU) - MOBILE APP LIKE UI
            ========================================== */
         const DashboardPortal = ({ user, onLogout, data, refreshData, apiCall, setDbSoal, setDbGuru, setDbSiswa, setDbJadwal, appConfig, setAppConfig }) => {
             const [activeTab, setActiveTab] = useState('dashboard');
@@ -369,20 +373,21 @@
                 .filter(Boolean)
                 .sort();
 
+            // Label Tab Dipendekkan agar muat di layar HP
             let tabs = [
-                { id: 'dashboard', label: 'Overview', icon: 'fa-columns' },
-                { id: 'soal', label: 'Manajemen Soal', icon: 'fa-file-lines' },
-                { id: 'siswa', label: 'Data Peserta', icon: 'fa-users' },
-                { id: 'hasil', label: 'Hasil Ujian', icon: 'fa-chart-bar' },
-                { id: 'rekap', label: 'Rekapitulasi Hasil', icon: 'fa-table' }
+                { id: 'dashboard', label: 'Home', icon: 'fa-home' },
+                { id: 'soal', label: 'Soal', icon: 'fa-file-lines' },
+                { id: 'siswa', label: 'Siswa', icon: 'fa-users' },
+                { id: 'hasil', label: 'Nilai', icon: 'fa-chart-bar' },
+                { id: 'rekap', label: 'Rekap', icon: 'fa-table' }
             ];
             
             // Menu Khusus Admin
             if (isAdmin) {
-                tabs.splice(3, 0, { id: 'rombel', label: 'Manajemen Rombel', icon: 'fa-layer-group' });
-                tabs.push({ id: 'pengaturan', label: 'Pengaturan Sesi', icon: 'fa-cogs' });
-                tabs.push({ id: 'cetakkartu', label: 'Cetak Kartu', icon: 'fa-print' });
-                tabs.push({ id: 'guru', label: 'Manajemen Akun Guru', icon: 'fa-chalkboard-teacher' });
+                tabs.splice(3, 0, { id: 'rombel', label: 'Rombel', icon: 'fa-layer-group' });
+                tabs.push({ id: 'pengaturan', label: 'Sesi', icon: 'fa-clock' });
+                tabs.push({ id: 'cetakkartu', label: 'Cetak', icon: 'fa-print' });
+                tabs.push({ id: 'guru', label: 'Guru', icon: 'fa-chalkboard-teacher' });
             }
 
             // Filter Data AMAN
@@ -406,9 +411,30 @@
             };
 
             return (
-                <div className="flex h-screen overflow-hidden">
-                    {/* SIDEBAR */}
-                    <div className="w-64 bg-red-900 text-white flex flex-col shrink-0 print-hidden">
+                <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-slate-50">
+                    {/* MOBILE TOP HEADER (TAMPIL HANYA DI HP) */}
+                    <div className="md:hidden bg-red-700 text-white p-4 flex justify-between items-center shrink-0 shadow-md z-20 print-hidden">
+                        <div className="flex items-center gap-3">
+                            {appConfig.logo ? (
+                                <img src={getSafeImageUrl(appConfig.logo)} alt="Logo" className="h-9 w-9 object-contain bg-white rounded-full p-0.5 shadow-sm" onError={(e) => { e.target.style.display='none'; }} />
+                            ) : (
+                                <div className="bg-red-800 p-2 rounded-lg border border-red-600 flex items-center justify-center">
+                                    <i className="fas fa-graduation-cap"></i>
+                                </div>
+                            )}
+                            <div>
+                                <div className="font-bold text-sm leading-tight">Portal {isAdmin ? 'Admin' : 'Guru'}</div>
+                                <div className="text-[10px] text-red-200 leading-tight">{user.Nama_Guru} {userKelas ? `(${userKelas})` : ''}</div>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={refreshData} className="text-red-100 hover:text-white transition w-8 h-8 flex items-center justify-center bg-red-800 rounded-full"><i className="fas fa-sync-alt"></i></button>
+                            {!isAdmin && <button onClick={() => setShowPwdModal(true)} className="text-red-100 hover:text-white transition w-8 h-8 flex items-center justify-center bg-red-800 rounded-full"><i className="fas fa-key"></i></button>}
+                        </div>
+                    </div>
+
+                    {/* DESKTOP SIDEBAR (TAMPIL HANYA DI PC/LAPTOP) */}
+                    <div className="hidden md:flex w-64 bg-red-900 text-white flex-col shrink-0 print-hidden shadow-xl z-20">
                         <div className="p-5 border-b border-red-800">
                             <div className="flex items-center gap-3 mb-2">
                                 {appConfig.logo ? (
@@ -453,16 +479,16 @@
                         </div>
                     </div>
 
-                    {/* MAIN CONTENT */}
-                    <div className="flex-1 bg-slate-50 overflow-y-auto p-8 relative print:p-0 print:bg-white print:m-0">
+                    {/* MAIN CONTENT (FLEX-1 UNTUK MENGISI SISA RUANG) */}
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 relative print:p-0 print:bg-white print:m-0 w-full">
                         {activeTab === 'dashboard' && (
                             <div className="print-hidden">
-                                <h2 className="text-2xl font-bold mb-6 text-slate-800">Dashboard Utama</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                                <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-slate-800">Dashboard Utama</h2>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
                                     <StatCard title="Siswa Terdaftar" value={displayedSiswa.length} icon="fa-users" color="bg-red-600" />
-                                    <StatCard title={isAdmin ? "Bank Soal Keseluruhan" : "Soal Saya"} value={mySoalCount} icon="fa-file-alt" color="bg-slate-600" />
-                                    <StatCard title="Data Hasil Ujian" value={relevantHasil.length} icon="fa-check-circle" color="bg-red-500" />
-                                    <StatCard title="Rata-Rata Nilai" value={averageScore} icon="fa-chart-line" color="bg-amber-500" />
+                                    <StatCard title={isAdmin ? "Total Soal" : "Soal Saya"} value={mySoalCount} icon="fa-file-alt" color="bg-slate-600" />
+                                    <StatCard title="Hasil Ujian" value={relevantHasil.length} icon="fa-check-circle" color="bg-red-500" />
+                                    <StatCard title="Rata Nilai" value={averageScore} icon="fa-chart-line" color="bg-amber-500" />
                                 </div>
                                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                                     <h3 className="font-bold text-lg mb-2 text-slate-800">Selamat Datang, {user.Nama_Guru}!</h3>
@@ -480,6 +506,25 @@
                         {activeTab === 'pengaturan' && isAdmin && <PengaturanSistem appConfig={appConfig} setAppConfig={setAppConfig} dbJadwal={displayedJadwal} setDbJadwal={setDbJadwal} apiCall={apiCall} isAdmin={isAdmin} userKelas={userKelas} availableClasses={availableClasses} />}
                         
                         {showPwdModal && <GantiPasswordModal onClose={() => setShowPwdModal(false)} onSubmit={handleChangePassword} />}
+                    </div>
+
+                    {/* MOBILE BOTTOM NAVIGATION (TAMPIL HANYA DI HP - SHOPEE STYLE) */}
+                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex overflow-x-auto z-30 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] hide-scrollbar pb-1">
+                        {tabs.map(tab => (
+                            <button 
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)} 
+                                className={`flex flex-col items-center justify-center min-w-[72px] flex-1 pt-3 pb-2 px-1 transition-colors relative ${activeTab === tab.id ? 'text-red-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                            >
+                                {activeTab === tab.id && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-red-600 rounded-b-full"></div>}
+                                <i className={`fas ${tab.icon} text-[20px] mb-1.5 ${activeTab === tab.id ? 'scale-110' : ''} transition-transform`}></i>
+                                <span className="text-[10px] font-bold text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full px-1">{tab.label}</span>
+                            </button>
+                        ))}
+                        <button onClick={onLogout} className="flex flex-col items-center justify-center min-w-[72px] flex-1 pt-3 pb-2 px-1 transition-colors text-slate-400 hover:text-red-600 hover:bg-red-50">
+                            <i className="fas fa-sign-out-alt text-[20px] mb-1.5"></i>
+                            <span className="text-[10px] font-bold text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full px-1">Keluar</span>
+                        </button>
                     </div>
                 </div>
             );
@@ -555,11 +600,11 @@
 
             return (
                 <div className="space-y-6">
-                    <div className="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4 print-hidden">
-                        <h2 className="text-2xl font-bold text-slate-800"><i className="fas fa-layer-group text-red-600 mr-2"></i>Manajemen Rombel</h2>
+                    <div className="flex flex-col lg:flex-row justify-between items-center mb-4 md:mb-6 gap-4 print-hidden">
+                        <h2 className="text-xl md:text-2xl font-bold text-slate-800"><i className="fas fa-layer-group text-red-600 mr-2"></i>Manajemen Rombel</h2>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Panel Kiri: Tambah Rombel */}
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-fit">
                             <h3 className="font-bold text-lg mb-4 border-b pb-2">Buat Rombel Baru</h3>
@@ -750,15 +795,17 @@
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 print-hidden">
                             <h3 className="text-xl font-bold mb-4 border-b pb-2"><i className="fas fa-school text-red-600 mr-2"></i>Identitas Sekolah & Tampilan</h3>
                             <form onSubmit={handleSaveIdentitas} className="space-y-4 max-w-2xl">
-                                <div>
-                                    <label className="block text-sm font-bold mb-1">Nama Sekolah</label>
-                                    <input type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none" value={namaSekolah || ''} onChange={e=>setNamaSekolah(e.target.value)} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold mb-1">Nama Sekolah</label>
+                                        <input type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none" value={namaSekolah || ''} onChange={e=>setNamaSekolah(e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold mb-1">Judul / Nama Ujian</label>
+                                        <input type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none" value={namaUjian || ''} onChange={e=>setNamaUjian(e.target.value)} />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-bold mb-1">Judul / Nama Ujian</label>
-                                    <input type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none" value={namaUjian || ''} onChange={e=>setNamaUjian(e.target.value)} />
-                                </div>
-                                <div className="grid md:grid-cols-2 gap-6 pt-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                                     <div>
                                         <label className="block text-sm font-bold mb-1">Logo Sekolah</label>
                                         <input type="file" accept="image/*" onChange={e => { if(e.target.files[0]) handleImageUploadToDrive(e.target.files[0], 300, setLogoBase64); }} className="w-full text-sm border-0 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100" />
@@ -779,7 +826,7 @@
 
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 print-hidden">
                         <h3 className="text-xl font-bold mb-4 border-b pb-2"><i className="fas fa-clock text-amber-500 mr-2"></i>Pengaturan Waktu Ujian & Token</h3>
-                        <div className="grid md:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
                                 <h4 className="font-bold text-sm text-slate-500 mb-3 uppercase">{isEditingJadwal ? 'Edit Sesi Ujian' : 'Buat Sesi Ujian Baru'}</h4>
                                 <form onSubmit={handleAddJadwal} className="space-y-3">
@@ -790,7 +837,7 @@
                                             {SESI_LIST.map(sesi => <option key={sesi} value={sesi}>{sesi}</option>)}
                                         </select>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                         <div>
                                             <label className="text-sm font-bold">Mata Pelajaran</label>
                                             <select required className="w-full border p-2 rounded bg-white focus:ring-2 focus:ring-amber-500 outline-none" value={jadwalForm.Mapel || ''} onChange={e=>setJadwalForm({...jadwalForm, Mapel: e.target.value})}>
@@ -806,7 +853,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                         <div>
                                             <label className="text-sm font-bold">Tanggal</label>
                                             <input required type="date" className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-amber-500 outline-none" value={jadwalForm.Tanggal || ''} onChange={e=>setJadwalForm({...jadwalForm, Tanggal: e.target.value})} />
@@ -822,7 +869,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                         <div>
                                             <label className="text-sm font-bold">Durasi (Menit)</label>
                                             <input required type="number" className="w-full border p-2 rounded focus:ring-2 focus:ring-amber-500 outline-none" value={jadwalForm.Durasi || ''} onChange={e=>setJadwalForm({...jadwalForm, Durasi: e.target.value})} />
@@ -891,7 +938,7 @@
                         <h3 className="text-xl font-bold mb-4 border-b pb-2"><i className="fas fa-print text-red-500 mr-2"></i>Cetak Kartu Ujian Massal</h3>
                         <p className="text-sm text-slate-500 mb-6">Pilih kelas yang ingin dicetak. Sistem akan memformat ukuran kartu secara otomatis menjadi 10 kartu per halaman A4.</p>
                         
-                        <div className="flex gap-4 items-end max-w-md">
+                        <div className="flex flex-col md:flex-row gap-4 md:items-end max-w-md">
                             <div className="flex-1">
                                 <label className="block text-sm font-bold mb-1">Pilih Kelas</label>
                                 <select className="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none" value={kelasCetak || ''} onChange={(e) => setKelasCetak(e.target.value)}>
@@ -899,7 +946,7 @@
                                     {availableClasses.map(k => <option key={k} value={k}>{k}</option>)}
                                 </select>
                             </div>
-                            <button disabled={!kelasCetak || siswaKelas.length === 0} onClick={() => setIsPrintingMassal(true)} className="bg-red-600 text-white font-bold px-6 py-2.5 rounded-lg shadow hover:bg-red-700 transition disabled:opacity-50 disabled:shadow-none">
+                            <button disabled={!kelasCetak || siswaKelas.length === 0} onClick={() => setIsPrintingMassal(true)} className="bg-red-600 text-white font-bold px-6 py-2.5 rounded-lg shadow hover:bg-red-700 transition disabled:opacity-50 disabled:shadow-none w-full md:w-auto">
                                 Cetak Kartu
                             </button>
                         </div>
@@ -1087,22 +1134,20 @@
             return (
                 <div>
                     <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 gap-4 print-hidden">
-                        <h2 className="text-2xl font-bold text-slate-800">Manajemen Peserta Ujian</h2>
-                        <div className="flex flex-wrap gap-2">
+                        <h2 className="text-xl md:text-2xl font-bold text-slate-800">Manajemen Peserta Ujian</h2>
+                        <div className="flex flex-col md:flex-row gap-2 w-full lg:w-auto">
                             <div className="relative w-full md:w-auto">
                                 <i className="fas fa-search absolute left-3 top-3 text-slate-400"></i>
                                 <input type="text" placeholder="Cari NISN, Nama..." className="w-full md:w-56 pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                             </div>
-                            
-                            <React.Fragment>
-                                <button onClick={() => setShowImportModal(true)} className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow">
+                            <div className="flex gap-2 w-full md:w-auto">
+                                <button onClick={() => setShowImportModal(true)} className="flex-1 md:flex-none justify-center bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow">
                                     <i className="fas fa-upload"></i> Import CSV
                                 </button>
-                                <button onClick={handleAddNewClick} className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow">
+                                <button onClick={handleAddNewClick} className="flex-1 md:flex-none justify-center bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow">
                                     <i className="fas fa-user-plus"></i> Tambah Siswa
                                 </button>
-                            </React.Fragment>
-                            
+                            </div>
                         </div>
                     </div>
 
@@ -1145,13 +1190,13 @@
                             <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
                                 <h3 className="text-xl font-bold mb-4 border-b pb-2">{isEditing ? 'Edit Data Siswa' : 'Tambah Data Siswa'}</h3>
                                 <form onSubmit={handleSubmitManual} className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div><label className="text-sm font-bold block mb-1">NISN / Username</label><input required disabled={isEditing && !isAdmin} type="text" className={`w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 ${isEditing && !isAdmin ? 'bg-slate-100 text-slate-500' : ''}`} value={formSiswa.NISN || ''} onChange={(e) => setFormSiswa({...formSiswa, NISN: e.target.value})} /></div>
                                         <div><label className="text-sm font-bold block mb-1">Password</label><input required type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500" value={formSiswa.Password || ''} onChange={(e) => setFormSiswa({...formSiswa, Password: e.target.value})} /></div>
                                     </div>
                                     <div><label className="text-sm font-bold block mb-1">Nama Lengkap Siswa</label><input required type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500" value={formSiswa.Nama || ''} onChange={(e) => setFormSiswa({...formSiswa, Nama: e.target.value})} /></div>
                                     
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="text-sm font-bold block mb-1">Kelas</label>
                                             <select required disabled={!isAdmin} className="w-full border p-2 rounded bg-white outline-none focus:ring-2 focus:ring-red-500 disabled:bg-slate-100 disabled:text-slate-500" value={formSiswa.Kelas || ''} onChange={(e) => setFormSiswa({...formSiswa, Kelas: e.target.value})}>
@@ -1433,16 +1478,16 @@
                                     <button onClick={handleBack} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg font-bold transition">
                                         <i className="fas fa-arrow-left"></i>
                                     </button>
-                                    <h2 className="text-2xl font-bold text-slate-800">
+                                    <h2 className="text-xl md:text-2xl font-bold text-slate-800">
                                         Soal: {selectedMapel} {isAdmin ? `(${selectedKelas})` : ''}
                                     </h2>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 w-full md:w-auto">
                                     <React.Fragment>
-                                        <button onClick={() => setShowImport(true)} className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow">
+                                        <button onClick={() => setShowImport(true)} className="flex-1 md:flex-none justify-center bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow">
                                             <i className="fas fa-file-import"></i> Import CSV
                                         </button>
-                                        <button onClick={handleAddNewClick} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow">
+                                        <button onClick={handleAddNewClick} className="flex-1 md:flex-none justify-center bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow">
                                             <i className="fas fa-plus"></i> Tambah Manual
                                         </button>
                                     </React.Fragment>
@@ -1477,11 +1522,11 @@
 
                             {/* MODAL TAMBAH/EDIT SOAL */}
                             {showModal && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
-                                    <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 mt-10 mb-auto">
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto pb-safe">
+                                    <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 mt-10 mb-auto relative z-50">
                                         <h3 className="text-xl font-bold mb-4 border-b pb-2">{isEditing ? 'Lihat/Edit Soal' : 'Buat Soal Baru'}</h3>
                                         <form onSubmit={handleSubmitManual} className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div><label className="text-sm font-bold block mb-1">ID Soal</label><input required disabled={isEditing} type="text" className={`w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 ${isEditing ? 'bg-slate-100 text-slate-500' : ''}`} value={form.ID_Soal || ''} onChange={e=>setForm({...form, ID_Soal: e.target.value})} /></div>
                                                 <div>
                                                     <label className="text-sm font-bold block mb-1">Tipe Soal</label>
@@ -1505,7 +1550,7 @@
                                             
                                             {form.Tipe_Soal === 'Pilihan Ganda' && (
                                                 <React.Fragment>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         {['A', 'B', 'C', 'D'].map(opsi => (
                                                             <div key={opsi}>
                                                                 <label className="text-sm font-bold block mb-1">Opsi {opsi}</label>
@@ -1540,7 +1585,7 @@
 
                                             {form.Tipe_Soal === 'Mencocokkan' && (
                                                 <React.Fragment>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="space-y-2">
                                                             <label className="text-sm font-bold block mb-1">Daftar Premis (Kiri)</label>
                                                             <input required type="text" className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500" value={form.Opsi_A || ''} onChange={e=>setForm({...form, Opsi_A: e.target.value})} placeholder="Premis 1" />
@@ -1567,7 +1612,7 @@
 
                             {showImport && (
                                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-                                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-8 text-center">
+                                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-8 text-center relative z-50">
                                         <i className="fas fa-file-csv text-5xl text-amber-500 mb-4"></i>
                                         <h3 className="text-xl font-bold mb-6">Import Soal (CSV)</h3>
                                         <input type="file" accept=".csv" ref={fileInputRef} className="hidden" onChange={handleImportCSV} />
@@ -1641,7 +1686,7 @@
                         <div>
                             <div className="flex items-center gap-4 mb-8">
                                 {isAdmin && <button onClick={handleBack} className="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-lg font-bold"><i className="fas fa-arrow-left"></i></button>}
-                                <h2 className="text-2xl font-bold text-slate-800">Hasil Ujian {isAdmin ? `- ${selectedKelas}` : ''}</h2>
+                                <h2 className="text-xl md:text-2xl font-bold text-slate-800">Hasil Ujian {isAdmin ? `- ${selectedKelas}` : ''}</h2>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                 {MAPEL_LIST.map(m => {
@@ -1664,7 +1709,7 @@
                             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                                 <div className="flex items-center gap-3">
                                     <button onClick={handleBack} className="bg-slate-200 hover:bg-slate-300 px-3 py-2 rounded-lg font-bold"><i className="fas fa-arrow-left"></i></button>
-                                    <h2 className="text-2xl font-bold text-slate-800">Nilai: {selectedMapel}</h2>
+                                    <h2 className="text-xl md:text-2xl font-bold text-slate-800">Nilai: {selectedMapel}</h2>
                                 </div>
                                 <div className="flex gap-2">
                                     <input type="text" placeholder="Cari NISN, Skor..." className="w-full md:w-64 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
@@ -1740,7 +1785,7 @@
                     <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                         <div className="flex items-center gap-3">
                             {isAdmin && <button onClick={() => setSelectedKelas('')} className="bg-slate-200 hover:bg-slate-300 px-3 py-2 rounded-lg font-bold"><i className="fas fa-arrow-left"></i></button>}
-                            <h2 className="text-2xl font-bold text-slate-800">Rekapitulasi: {selectedKelas}</h2>
+                            <h2 className="text-xl md:text-2xl font-bold text-slate-800">Rekapitulasi: {selectedKelas}</h2>
                         </div>
                         <button onClick={handleExportCSV} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
                             <i className="fas fa-file-excel"></i> Export Rekap
@@ -1799,13 +1844,13 @@
 
             return (
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-800 mb-6 print-hidden">Laporan & Berita Acara</h2>
+                    <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-6 print-hidden">Laporan & Berita Acara</h2>
                     <div className="bg-white p-6 rounded-xl shadow-sm border mb-6 print-hidden">
                         <select className="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-white" value={selectedTes} onChange={(e) => setSelectedTes(e.target.value)}>
                             <option value="">-- Pilih Ujian Dicetak --</option>
                             {(dbJadwal || []).filter(j => j).map((j, i) => <option key={i} value={j.ID_Tes}>{j.Mapel} - {j.Waktu_Mulai}</option>)}
                         </select>
-                        {jadwalAktif && <button onClick={() => setIsPrinting(true)} className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700"><i className="fas fa-print mr-2"></i> Preview Cetak</button>}
+                        {jadwalAktif && <button onClick={() => setIsPrinting(true)} className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 w-full md:w-auto"><i className="fas fa-print mr-2"></i> Preview Cetak</button>}
                     </div>
 
                     {isPrinting && jadwalAktif && (
@@ -1913,7 +1958,7 @@
                 <div className="min-h-screen flex flex-col bg-slate-50">
                     <header className="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm sticky top-0 z-10">
                         <h1 className="font-bold text-lg text-red-700 flex items-center">
-                            {appConfig.logo ? <img src={getSafeImageUrl(appConfig.logo)} className="h-8 mr-2 object-contain" onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150x50?text=Logo'; }} /> : <i className="fas fa-book-open mr-2"></i>}
+                            {appConfig.logo ? <img src={getSafeImageUrl(appConfig.logo)} className="h-8 mr-2 object-contain" onError={(e) => { e.target.style.display='none'; }} /> : <i className="fas fa-book-open mr-2"></i>}
                             {appConfig.namaUjian}
                         </h1>
                         <div className="flex items-center gap-4">
@@ -1922,7 +1967,7 @@
                         </div>
                     </header>
                     <main className="p-6 md:p-10 max-w-4xl mx-auto w-full">
-                        <h2 className="text-2xl font-bold mb-6">Ujian Tersedia</h2>
+                        <h2 className="text-xl md:text-2xl font-bold mb-6">Ujian Tersedia</h2>
                         <div className="grid md:grid-cols-2 gap-6 mb-10">
                             {availableExams.map((jadwal) => {
                                 const isAktif = String(jadwal.Status).toLowerCase() === 'aktif';
@@ -1963,7 +2008,7 @@
                             {availableExams.length === 0 && <div className="col-span-2 text-center text-slate-500 bg-slate-100 p-6 rounded-lg">Belum ada ujian untuk kelas Anda.</div>}
                         </div>
                         
-                        <h2 className="text-2xl font-bold mb-6 border-t pt-8">Riwayat Nilai Anda</h2>
+                        <h2 className="text-xl md:text-2xl font-bold mb-6 border-t pt-8">Riwayat Nilai Anda</h2>
                         <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
                             <table className="w-full text-left text-sm whitespace-nowrap">
                                 <thead className="bg-slate-100 text-slate-600"><tr><th className="p-4 border-b">Tanggal Selesai</th><th className="p-4 border-b">Mata Pelajaran</th><th className="p-4 border-b text-center">Skor Akhir</th></tr></thead>
@@ -1990,13 +2035,6 @@
             const [timeLeft, setTimeLeft] = useState(parseInt(examData?.Durasi) * 60 || 0);
             const [showSummary, setShowSummary] = useState(false);
             
-            // Cek URL Gambar di Ujian
-            const isImageUrl = (val) => {
-                if (!val) return false;
-                const str = String(val).trim();
-                return str.startsWith('http') || str.startsWith('data:image');
-            };
-
             const mapelUtama = examData && examData.Mapel ? String(examData.Mapel).split(' - ')[0].trim() : '';
             const userKelasSafe = String(user?.Kelas || '').trim().toLowerCase();
 
@@ -2057,25 +2095,25 @@
             };
 
             return (
-                <div className="h-screen flex flex-col bg-slate-100 select-none relative">
-                    <header className="bg-red-600 text-white px-6 py-3 flex justify-between items-center shadow-md z-10 shrink-0">
-                        <div className="font-bold text-lg flex items-center">
+                <div className="h-screen flex flex-col bg-slate-100 select-none relative pb-safe">
+                    <header className="bg-red-600 text-white px-4 md:px-6 py-3 flex justify-between items-center shadow-md z-10 shrink-0">
+                        <div className="font-bold text-sm md:text-lg flex items-center">
                             {appConfig.logo && <img src={getSafeImageUrl(appConfig.logo)} className="h-8 mr-3 bg-white rounded p-0.5 hidden sm:block object-contain" onError={(e) => { e.target.style.display='none'; }} />}
-                            {mapelUtama} <span className="font-normal text-sm ml-2 opacity-80">({user?.Nama})</span>
+                            {mapelUtama} <span className="font-normal text-xs md:text-sm ml-2 opacity-80">({user?.Nama})</span>
                         </div>
-                        <div className="flex gap-4 items-center">
-                            <div className="flex items-center gap-2 bg-red-800 px-4 py-1.5 rounded-lg shadow-inner">
-                                <span className="text-sm font-medium text-red-200 hidden md:inline">Sisa Waktu:</span>
-                                <div className="font-mono text-xl font-bold text-white flex items-center"><i className="far fa-clock text-amber-300 mr-2"></i>{formatTime(timeLeft)}</div>
+                        <div className="flex gap-2 md:gap-4 items-center">
+                            <div className="flex items-center gap-2 bg-red-800 px-3 md:px-4 py-1.5 rounded-lg shadow-inner">
+                                <span className="text-xs font-medium text-red-200 hidden md:inline">Sisa Waktu:</span>
+                                <div className="font-mono text-sm md:text-xl font-bold text-white flex items-center"><i className="far fa-clock text-amber-300 mr-2"></i>{formatTime(timeLeft)}</div>
                             </div>
-                            <button onClick={()=>setShowSummary(true)} className="bg-white text-red-600 hover:bg-slate-100 px-5 py-2 rounded font-bold shadow transition">Selesai</button>
+                            <button onClick={()=>setShowSummary(true)} className="bg-white text-red-600 hover:bg-slate-100 px-3 md:px-5 py-1.5 md:py-2 rounded font-bold shadow transition text-sm">Selesai</button>
                         </div>
                     </header>
                     <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                         <div className="flex-1 overflow-y-auto p-4 md:p-8">
                             <div className="bg-white rounded-xl shadow p-6 md:p-8 max-w-4xl mx-auto">
                                 <div className="flex justify-between items-center border-b pb-3 mb-6">
-                                    <h3 className="font-bold text-xl text-slate-800">Soal No. {currentNumber + 1}</h3>
+                                    <h3 className="font-bold text-lg md:text-xl text-slate-800">Soal No. {currentNumber + 1}</h3>
                                     <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold border">{soalNow?.Tipe_Soal || 'Pilihan Ganda'}</span>
                                 </div>
                                 
@@ -2085,7 +2123,7 @@
                                     </div>
                                 )}
                                 
-                                <p className="text-xl mb-8 leading-relaxed text-slate-800">{soalNow?.Pertanyaan}</p>
+                                <p className="text-lg md:text-xl mb-8 leading-relaxed text-slate-800">{soalNow?.Pertanyaan}</p>
                                 
                                 {(!soalNow?.Tipe_Soal || soalNow.Tipe_Soal === 'Pilihan Ganda') && (
                                     <div className="grid grid-cols-1 gap-4">
@@ -2093,12 +2131,12 @@
                                             if(!soalNow[`Opsi_${opsi}`]) return null;
                                             const isSelected = answers[currentNumber] === opsi;
                                             return (
-                                                <label key={opsi} className={`flex items-center gap-4 p-5 border-2 rounded-xl cursor-pointer transition ${isSelected ? 'border-red-500 bg-red-50' : 'border-slate-200 hover:border-red-200'}`}>
+                                                <label key={opsi} className={`flex items-center gap-4 p-4 md:p-5 border-2 rounded-xl cursor-pointer transition ${isSelected ? 'border-red-500 bg-red-50' : 'border-slate-200 hover:border-red-200'}`}>
                                                     <input type="radio" className="hidden" checked={isSelected} onChange={() => setAnswers(prev => ({...prev, [currentNumber]: opsi}))} />
                                                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'border-red-500 bg-red-600 text-white' : 'border-slate-300 font-bold text-slate-400'}`}>
                                                         {isSelected ? <div className="w-3 h-3 bg-white rounded-full"></div> : opsi}
                                                     </div>
-                                                    <div className="flex-1 text-lg text-slate-800 break-words overflow-hidden">
+                                                    <div className="flex-1 text-base md:text-lg text-slate-800 break-words overflow-hidden">
                                                         {isImageUrl(soalNow[`Opsi_${opsi}`]) ? (
                                                             <img src={getSafeImageUrl(soalNow[`Opsi_${opsi}`])} alt={`Opsi ${opsi}`} className="max-h-32 object-contain rounded border p-1 bg-white shadow-sm" onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150x50?text=Gambar+Gagal+Dimuat'; }} />
                                                         ) : (
@@ -2112,16 +2150,16 @@
                                 )}
 
                                 {soalNow?.Tipe_Soal === 'Benar/Salah' && (
-                                    <div className="grid grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-2 gap-4 md:gap-6">
                                         {['A', 'B'].map((opsi) => {
                                             const isSelected = answers[currentNumber] === opsi;
                                             const label = opsi === 'A' ? 'Benar' : 'Salah';
                                             const colorClass = opsi === 'A' ? 'emerald' : 'red';
                                             return (
-                                                <label key={opsi} className={`flex flex-col items-center gap-4 p-6 border-2 rounded-xl cursor-pointer transition ${isSelected ? `border-${colorClass}-500 bg-${colorClass}-50` : 'border-slate-200 hover:border-slate-300'}`}>
+                                                <label key={opsi} className={`flex flex-col items-center gap-4 p-4 md:p-6 border-2 rounded-xl cursor-pointer transition ${isSelected ? `border-${colorClass}-500 bg-${colorClass}-50` : 'border-slate-200 hover:border-slate-300'}`}>
                                                     <input type="radio" className="hidden" checked={isSelected} onChange={() => setAnswers(prev => ({...prev, [currentNumber]: opsi}))} />
                                                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${isSelected ? `border-${colorClass}-500 bg-${colorClass}-500 text-white` : 'border-slate-300'}`}>{isSelected && <i className="fas fa-check"></i>}</div>
-                                                    <div className={`text-2xl font-black ${isSelected ? `text-${colorClass}-600` : 'text-slate-600'}`}>{label}</div>
+                                                    <div className={`text-xl md:text-2xl font-black ${isSelected ? `text-${colorClass}-600` : 'text-slate-600'}`}>{label}</div>
                                                 </label>
                                             )
                                         })}
@@ -2129,8 +2167,8 @@
                                 )}
 
                                 {soalNow?.Tipe_Soal === 'Mencocokkan' && (
-                                    <div className="space-y-6 bg-red-50/50 p-6 border border-red-100 rounded-xl">
-                                        <p className="text-sm font-bold text-red-800 mb-4"><i className="fas fa-link mr-2"></i>Pasangkan premis di sebelah kiri dengan pilihan yang tepat.</p>
+                                    <div className="space-y-4 md:space-y-6 bg-red-50/50 p-4 md:p-6 border border-red-100 rounded-xl">
+                                        <p className="text-sm font-bold text-red-800 mb-4"><i className="fas fa-link mr-2"></i>Pasangkan premis di kiri dengan pilihan yang tepat.</p>
                                         {['A', 'B'].map(premisKey => {
                                             if(!soalNow[`Opsi_${premisKey}`]) return null;
                                             const currentAns = answers[currentNumber] || '';
@@ -2138,10 +2176,10 @@
                                             if(currentAns.includes(`${premisKey}:`)) currentMatch = currentAns.split(`${premisKey}:`)[1].split(',')[0];
                                             return (
                                                 <div key={premisKey} className="flex flex-col md:flex-row items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-                                                    <div className="flex-1 font-bold text-lg w-full text-center md:text-left">{soalNow[`Opsi_${premisKey}`]}</div>
-                                                    <i className="fas fa-arrow-right text-slate-300 hidden md:block"></i>
+                                                    <div className="flex-1 font-bold text-base md:text-lg w-full text-center md:text-left">{soalNow[`Opsi_${premisKey}`]}</div>
+                                                    <i className="fas fa-arrow-down md:fa-arrow-right text-slate-300 block"></i>
                                                     <div className="w-full md:w-1/2 shrink-0">
-                                                        <select className="w-full p-3 border-2 border-red-200 rounded-lg outline-none focus:border-red-500 font-medium" value={currentMatch} onChange={(e) => handleMatchChange(premisKey, e.target.value)}>
+                                                        <select className="w-full p-3 border-2 border-red-200 rounded-lg outline-none focus:border-red-500 font-medium text-sm md:text-base" value={currentMatch} onChange={(e) => handleMatchChange(premisKey, e.target.value)}>
                                                             <option value="">-- Pilih Pasangan --</option>
                                                             {soalNow.Opsi_C && <option value="C">{soalNow.Opsi_C}</option>}
                                                             {soalNow.Opsi_D && <option value="D">{soalNow.Opsi_D}</option>}
@@ -2153,21 +2191,21 @@
                                     </div>
                                 )}
                                 
-                                <div className="flex justify-between items-center mt-10 border-t pt-6">
-                                    <button disabled={currentNumber===0} onClick={()=>setCurrentNumber(p=>p-1)} className="px-6 py-3 bg-slate-200 rounded-lg font-bold text-slate-700 hover:bg-slate-300 disabled:opacity-50 transition"><i className="fas fa-arrow-left mr-2"></i>Prev</button>
-                                    <label className="flex items-center gap-2 cursor-pointer select-none bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-300 text-yellow-700 font-bold hover:bg-yellow-100 transition">
+                                <div className="flex flex-col md:flex-row justify-between items-center mt-10 border-t pt-6 gap-4">
+                                    <button disabled={currentNumber===0} onClick={()=>setCurrentNumber(p=>p-1)} className="w-full md:w-auto px-6 py-3 bg-slate-200 rounded-lg font-bold text-slate-700 hover:bg-slate-300 disabled:opacity-50 transition"><i className="fas fa-arrow-left mr-2"></i>Prev</button>
+                                    <label className="w-full md:w-auto flex justify-center items-center gap-2 cursor-pointer select-none bg-yellow-50 px-6 py-3 rounded-lg border border-yellow-300 text-yellow-700 font-bold hover:bg-yellow-100 transition">
                                         <input type="checkbox" className="w-5 h-5 accent-yellow-500" checked={doubtful[currentNumber] || false} onChange={()=>setDoubtful(p=>({...p, [currentNumber]: !p[currentNumber]}))} />
                                         Ragu-Ragu
                                     </label>
-                                    <button disabled={currentNumber===soalList.length-1} onClick={()=>setCurrentNumber(p=>p+1)} className="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 disabled:opacity-50 transition">Next<i className="fas fa-arrow-right ml-2"></i></button>
+                                    <button disabled={currentNumber===soalList.length-1} onClick={()=>setCurrentNumber(p=>p+1)} className="w-full md:w-auto px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 disabled:opacity-50 transition">Next<i className="fas fa-arrow-right ml-2"></i></button>
                                 </div>
                             </div>
                         </div>
                         
-                        <div className="w-full md:w-80 bg-white border-l p-4 flex flex-col h-56 md:h-auto shrink-0">
-                            <h3 className="font-bold text-center mb-4 border-b pb-2">Navigasi Soal</h3>
-                            <div className="flex-1 overflow-y-auto pr-2">
-                                <div className="grid grid-cols-5 gap-2">
+                        <div className="w-full md:w-80 bg-white border-t md:border-t-0 md:border-l p-4 flex flex-col h-48 md:h-auto shrink-0">
+                            <h3 className="font-bold text-center mb-4 border-b pb-2 hidden md:block">Navigasi Soal</h3>
+                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="grid grid-cols-6 md:grid-cols-5 gap-2">
                                     {soalList.map((s, i) => {
                                         let isAnswered = false;
                                         if (s?.Tipe_Soal === 'Mencocokkan') { isAnswered = answers[i] && answers[i].includes('A:') && answers[i].includes('B:') && answers[i].length > 6; } 
@@ -2178,14 +2216,9 @@
                                         else if (doubtful[i]) btnClass = 'bg-yellow-400 text-yellow-900 border-transparent shadow-sm';
                                         else if (isAnswered) btnClass = 'bg-red-600 text-white border-transparent shadow-sm';
                                         
-                                        return <button key={i} onClick={()=>setCurrentNumber(i)} className={`h-12 rounded font-bold border transition ${btnClass}`}>{i+1}</button>;
+                                        return <button key={i} onClick={()=>setCurrentNumber(i)} className={`h-10 md:h-12 rounded font-bold text-sm md:text-base border transition ${btnClass}`}>{i+1}</button>;
                                     })}
                                 </div>
-                            </div>
-                            <div className="mt-4 pt-4 border-t text-xs font-bold text-slate-500 grid grid-cols-2 gap-2">
-                                <div className="flex items-center gap-2"><div className="w-3 h-3 bg-red-600 rounded"></div>Terjawab</div>
-                                <div className="flex items-center gap-2"><div className="w-3 h-3 bg-yellow-400 rounded"></div>Ragu-Ragu</div>
-                                <div className="flex items-center gap-2 col-span-2"><div className="w-3 h-3 bg-slate-100 border rounded"></div>Belum Dijawab</div>
                             </div>
                         </div>
                     </div>
