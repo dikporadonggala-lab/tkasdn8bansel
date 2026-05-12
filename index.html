@@ -104,7 +104,7 @@
         /* ==========================================
            PASTE URL GOOGLE APPS SCRIPT ANDA DI SINI
            ========================================== */
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxubjnNnjEBDploZqA4ksmim5yQ58WX3Ocg7lZh5dLhN5kESJiDWTrCFxQunOYiKphRzA/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxqXCwO_JRdezqxL8LcMOhkDVaK3qEZDxrEipI6GnA1lpQ_5RUbImqVv1htRsbbgKm3Rw/exec";
 
         // FUNGSI GLOBAL: Konverter Link Google Drive Anti-Blokir
         const getSafeImageUrl = (url) => {
@@ -456,7 +456,7 @@
             };
 
             return (
-                <div className="flex flex-col h-screen overflow-hidden bg-slate-50 print:block print:h-auto print:overflow-visible">
+                <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-slate-50 print:block print:h-auto print:overflow-visible">
                     
                     {/* MOBILE TOP HEADER */}
                     <div className="md:hidden w-full bg-red-700 text-white p-4 flex justify-between items-center shrink-0 shadow-md z-20 print-hidden">
@@ -1422,12 +1422,22 @@
             };
 
             const handleAddNewClick = () => {
-                setForm({ ID_Soal: '', Tipe_Soal: 'Pilihan Ganda', Topik: selectedMapel, Pertanyaan: '', Opsi_A: '', Opsi_B: '', Opsi_C: '', Opsi_D: '', Kunci: 'A', Media_URL: '', Pembuat: '' });
+                const prefix = selectedMapel.substring(0, 3).toUpperCase();
+                const uniqueId = `${prefix}-${Math.floor(10000 + Math.random() * 90000)}`;
+                setForm({ ID_Soal: uniqueId, Tipe_Soal: 'Pilihan Ganda', Topik: selectedMapel, Pertanyaan: '', Opsi_A: '', Opsi_B: '', Opsi_C: '', Opsi_D: '', Kunci: 'A', Media_URL: '', Pembuat: '' });
                 setIsEditing(false); setShowModal(true);
             };
 
             const handleEditClick = (soal) => {
                 setForm(soal); setIsEditing(true); setShowModal(true);
+            };
+
+            const handleDeleteSoal = (idSoal) => {
+                if(window.confirm(`Yakin ingin menghapus soal dengan ID "${idSoal}" secara permanen?`)) {
+                    setDbSoal(prev => prev.filter(s => s.ID_Soal !== idSoal));
+                    apiCall('deleteSoal', { ID_Soal: idSoal });
+                    alert("Soal berhasil dihapus!");
+                }
             };
 
             const handleTypeChange = (e) => {
@@ -1569,7 +1579,10 @@
                                                     <td className="p-4 font-bold">{soal.ID_Soal}</td><td className="p-4">{soal.Tipe_Soal}</td>
                                                     <td className="p-4 truncate max-w-xs">{soal.Pertanyaan}</td>
                                                     <td className="p-4">
-                                                        <button onClick={() => handleEditClick(soal)} className="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-lg font-bold transition"><i className="fas fa-edit mr-1"></i> Edit/Lihat</button>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => handleEditClick(soal)} className="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg font-bold transition"><i className="fas fa-edit"></i> Edit</button>
+                                                            <button onClick={() => handleDeleteSoal(soal.ID_Soal)} className="bg-red-100 text-red-700 px-3 py-1.5 rounded-lg font-bold transition"><i className="fas fa-trash"></i> Hapus</button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -1585,7 +1598,7 @@
                                         <h3 className="text-xl font-bold mb-4 border-b pb-2">{isEditing ? 'Lihat/Edit Soal' : 'Buat Soal Baru'}</h3>
                                         <form onSubmit={handleSubmitManual} className="space-y-4">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div><label className="text-sm font-bold block mb-1">ID Soal</label><input required disabled={isEditing || isAdmin} type="text" className={`w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 ${isEditing ? 'bg-slate-100 text-slate-500' : ''}`} value={form.ID_Soal || ''} onChange={e=>setForm({...form, ID_Soal: e.target.value})} /></div>
+                                                <div><label className="text-sm font-bold block mb-1">ID Soal</label><input required disabled type="text" className={`w-full border p-2 rounded outline-none focus:ring-2 focus:ring-red-500 bg-slate-100 text-slate-500`} value={form.ID_Soal || ''} onChange={e=>setForm({...form, ID_Soal: e.target.value})} /></div>
                                                 <div>
                                                     <label className="text-sm font-bold block mb-1">Tipe Soal</label>
                                                     <select disabled={isAdmin} className="w-full border p-2 rounded bg-white font-bold outline-none focus:ring-2 focus:ring-red-500 disabled:bg-slate-100 disabled:text-slate-500" value={form.Tipe_Soal || ''} onChange={handleTypeChange}>
@@ -1907,96 +1920,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            );
-        };
-
-        /* ==========================================
-           LAPORAN BERITA ACARA (HANYA ADMIN)
-           ========================================== */
-        const LaporanBeritaAcara = ({ dbJadwal, dbSiswa, dbHasil, appConfig }) => {
-            const [selectedTes, setSelectedTes] = useState('');
-            const [isPrinting, setIsPrinting] = useState(false);
-
-            if (!dbJadwal || dbJadwal.length === 0) return <div className="p-6 bg-white rounded-xl border text-slate-500">Belum ada jadwal ujian di kelas ini.</div>;
-            
-            const jadwalAktif = dbJadwal.find(j => j && j.ID_Tes === selectedTes);
-            
-            let daftarHadir = jadwalAktif ? (dbSiswa || []).filter(s => s).map(siswa => {
-                const mapelJadwalSafe = String(jadwalAktif.Mapel).trim().toLowerCase();
-                const hasilSiswa = (dbHasil || []).find(h => h && String(h.NISN) === String(siswa.NISN) && h.Mapel && String(h.Mapel).trim().toLowerCase() === mapelJadwalSafe);
-                return { 
-                    ...siswa, 
-                    hadir: !!hasilSiswa, 
-                    skor: hasilSiswa ? hasilSiswa.Skor : '-', 
-                    timestamp: hasilSiswa ? hasilSiswa.Timestamp : '-' 
-                };
-            }) : [];
-
-            return (
-                <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-6 print-hidden">Laporan & Berita Acara</h2>
-                    <div className="bg-white p-6 rounded-xl shadow-sm border mb-6 print-hidden">
-                        <select className="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-white" value={selectedTes} onChange={(e) => setSelectedTes(e.target.value)}>
-                            <option value="">-- Pilih Ujian Dicetak --</option>
-                            {(dbJadwal || []).filter(j => j).map((j, i) => <option key={i} value={j.ID_Tes}>{j.Mapel} - {j.Waktu_Mulai}</option>)}
-                        </select>
-                        {jadwalAktif && <button onClick={() => setIsPrinting(true)} className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 w-full md:w-auto"><i className="fas fa-print mr-2"></i> Preview Cetak</button>}
-                    </div>
-
-                    {isPrinting && jadwalAktif && (
-                        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 print:bg-white print:static print:block">
-                            <div className="min-h-screen flex justify-center p-6 print:p-0 print:min-h-0">
-                                <div className="bg-white p-10 rounded-xl max-w-4xl w-full print:shadow-none print:w-full print:p-0">
-                                    <div className="border-b-4 border-double border-black pb-4 mb-6 flex items-center gap-6">
-                                        {appConfig.logo ? <img src={getSafeImageUrl(appConfig.logo)} alt="Logo Sekolah" className="h-20 object-contain print:block" /> : <div className="h-20 w-20 bg-slate-100 flex items-center justify-center border border-black"><span className="text-xs">Logo</span></div>}
-                                        <div className="flex-1 text-center pr-20">
-                                            <h1 className="text-2xl font-black uppercase print:text-black">{appConfig.namaSekolah}</h1>
-                                            <p className="text-sm font-bold uppercase print:text-black">{appConfig.namaUjian}</p>
-                                            <p className="text-xs font-medium print:text-black">Laporan Resmi Evaluasi & Pelaksanaan Ujian</p>
-                                        </div>
-                                    </div>
-                                    <h2 className="text-xl font-bold text-center underline uppercase mb-6 print:text-black">Berita Acara Pelaksanaan Ujian</h2>
-                                    <div className="text-sm space-y-2 mb-8 print:text-black">
-                                        <p>Pada hari ini, telah dilaksanakan evaluasi akademik secara digital untuk sesi ujian berikut:</p>
-                                        <table className="mt-4 ml-4">
-                                            <tbody>
-                                                <tr><td className="w-40 font-bold">Mata Pelajaran / Kelas</td><td>: {jadwalAktif.Mapel}</td></tr>
-                                                <tr><td className="font-bold">Waktu Mulai</td><td>: {jadwalAktif.Waktu_Mulai}</td></tr>
-                                                <tr><td className="font-bold">Durasi Ujian</td><td>: {jadwalAktif.Durasi} Menit</td></tr>
-                                                <tr><td className="font-bold">Total Terdaftar</td><td>: {daftarHadir.length} Siswa</td></tr>
-                                                <tr><td className="font-bold">Hadir Ujian</td><td>: {daftarHadir.filter(s => s.hadir).length} Siswa</td></tr>
-                                                <tr><td className="font-bold">Tidak Hadir</td><td>: {daftarHadir.filter(s => !s.hadir).length} Siswa</td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <table className="w-full text-sm border-collapse border border-black mb-10 print:text-black">
-                                        <thead>
-                                            <tr><th className="border border-black p-2 bg-slate-100 print:bg-white w-12">No</th><th className="border border-black p-2 bg-slate-100 print:bg-white">NISN</th><th className="border border-black p-2 bg-slate-100 print:bg-white">Nama Siswa</th><th className="border border-black p-2 bg-slate-100 print:bg-white text-center">Kelas</th><th className="border border-black p-2 bg-slate-100 print:bg-white text-center">Kehadiran</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            {daftarHadir.map((siswa, idx) => (
-                                                <tr key={idx}>
-                                                    <td className="border border-black p-2 text-center">{idx + 1}</td><td className="border border-black p-2 font-mono">{siswa.NISN}</td><td className="border border-black p-2">{siswa.Nama}</td><td className="border border-black p-2 text-center">{siswa.Kelas}</td>
-                                                    <td className="border border-black p-2 text-center">{siswa.hadir ? <span className="font-bold text-green-600">Hadir</span> : <span className="font-bold text-red-600">Absen</span>}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                    <div className="flex justify-end mt-12 print:text-black">
-                                        <div className="text-center">
-                                            <p className="mb-16">Pengawas Ruangan,</p>
-                                            <p className="font-bold underline">___________________________</p>
-                                        </div>
-                                    </div>
-                                    <div className="mt-10 flex gap-4 print-hidden border-t pt-6">
-                                        <button onClick={() => setIsPrinting(false)} className="px-6 py-2 bg-slate-200 rounded-lg font-bold">Tutup</button>
-                                        <button onClick={()=>window.print()} className="flex-1 bg-red-600 text-white rounded-lg font-bold"><i className="fas fa-print"></i> Cetak Berita Acara</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             );
         };
